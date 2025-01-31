@@ -26,7 +26,7 @@ export async function drawTile({
   }
   const player = players[playerIndex]
   const [newTile] = tiles_pool.splice(randomArrIndex(tiles_pool.length), 1)
-  player.tiles = [...player.tiles, newTile]
+  player.tiles = [...player.tiles, [...newTile, crypto.randomUUID()]]
   const nextTurnPlayer = players[(playerIndex + 1) % players.length].id
   const {error} = await supabase
     .from('games')

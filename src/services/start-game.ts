@@ -1,4 +1,5 @@
 import supabase from '../supabase/client'
+import { GameTile } from '../types/game'
 import { getGameTiles, INITAL_TILES_PER_PLAYER, MIN_PLAYERS, randomArrIndex } from '../utils/constants'
 import { getGame } from './get-game'
 
@@ -20,11 +21,11 @@ export async function startGame({
   }
   const initialTiles = getGameTiles()
   const newGamePlayers = players.map(p => {
-    const playerTiles = []
+    const playerTiles: GameTile[] = []
     for (let i = 0; i < INITAL_TILES_PER_PLAYER; i++) {
       const randomIndex = randomArrIndex(initialTiles.length)
       const [tile] = initialTiles.splice(randomIndex, 1)
-      playerTiles.push(tile)
+      playerTiles.push([...tile, crypto.randomUUID()])
     }
     return {...p, tiles: playerTiles}
   })

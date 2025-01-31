@@ -39,6 +39,7 @@ export type Database = {
           created_by: number
           id: number
           players: Json
+          rack_tiles: Json
           started: boolean
           tiles_pool: Json
           turn_id: number | null
@@ -47,6 +48,7 @@ export type Database = {
           created_by: number
           id?: number
           players?: Json
+          rack_tiles?: Json
           started?: boolean
           tiles_pool?: Json
           turn_id?: number | null
@@ -55,6 +57,7 @@ export type Database = {
           created_by?: number
           id?: number
           players?: Json
+          rack_tiles?: Json
           started?: boolean
           tiles_pool?: Json
           turn_id?: number | null
