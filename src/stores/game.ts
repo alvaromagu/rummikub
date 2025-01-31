@@ -30,11 +30,8 @@ export const useGameStore = create<GameStore>()(
         return
       }
       const playerTiles = game.players.find(p => p.id === playerId)?.tiles
-      if (playerTiles == null || !playerTiles.some(t => t[2] === tile[2])) {
-        return
-      }
-      const alreadyInRack = rack.some(tiles => tiles.some(([, , id]) => id === tile[2]))
-      if (alreadyInRack) {
+      const alreadyDropped = rack.some(tiles => tiles.some(t => t[2] === tile[2]))
+      if (playerTiles == null || (!playerTiles.some(t => t[2] === tile[2]) && !alreadyDropped)) {
         return
       }
       const rackTile: RackTile = [...tile, playerId]
@@ -47,7 +44,8 @@ export const useGameStore = create<GameStore>()(
         }
         return p
       })
-      const newRack = [...rack]
+      const filterFromRack = rack.map(tiles => tiles.filter(t => t[2] !== tile[2]))
+      const newRack = [...filterFromRack]
       if (subrackIndex == null) {
         newRack.push([rackTile])
         set({

@@ -134,6 +134,10 @@ function GameBoardRack() {
                 'bg-gray-200 rounded w-[3ch] pt-1 pb-2 font-bold flex justify-center items-center',
                 tileColorMap[color],
               )}
+              draggable
+              onDragStart={event => {
+                event.dataTransfer.setData('text/plain', JSON.stringify([value, color, id]))
+              }}
             >
               {value === JOKER ? <Joker /> : value}
             </div>
