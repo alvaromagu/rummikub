@@ -109,7 +109,24 @@ function GameBoardRack() {
       }}
     >
       {rack.map((tiles, index) => (
-        <div key={index} className='gap-0.5 p-2 border h-fit flex'>
+        <div 
+          key={index} 
+          className='gap-0.5 p-2 border h-fit flex'
+          onDrop={event => {
+            event.preventDefault()
+            event.stopPropagation()
+            const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as GameTile
+            dropTile({
+              playerId,
+              tile: tile,
+              subrackIndex: index,
+            })
+          }}
+          onDragOver={event => {
+            event.preventDefault()
+            event.stopPropagation()
+          }}
+        >
           {tiles.map(([value, color, id]) => (
             <div
               key={id}
@@ -117,20 +134,6 @@ function GameBoardRack() {
                 'bg-gray-200 rounded w-[3ch] pt-1 pb-2 font-bold flex justify-center items-center',
                 tileColorMap[color],
               )}
-              onDrop={event => {
-                event.preventDefault()
-                event.stopPropagation()
-                const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as GameTile
-                dropTile({
-                  playerId,
-                  tile: tile,
-                  subrackIndex: index,
-                })
-              }}
-              onDragOver={event => {
-                event.preventDefault()
-                event.stopPropagation()
-              }}
             >
               {value === JOKER ? <Joker /> : value}
             </div>
