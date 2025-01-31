@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { Game, GameTile } from '../types/game'
+import { JOKER } from '../utils/constants'
 
 type RackTile = [...GameTile, number | undefined]
 
@@ -37,12 +38,6 @@ export const useGameStore = create<GameStore>()(
         return
       }
       const rackTile: RackTile = [...tile, playerId]
-      const newRack = [...rack]
-      if (subrackIndex != null) {
-        newRack[subrackIndex]?.push(rackTile)
-      } else {
-        newRack.push([rackTile])
-      }
       const newPlayers = game.players.map(p => {
         if (p.id === playerId) {
           return {
@@ -52,6 +47,64 @@ export const useGameStore = create<GameStore>()(
         }
         return p
       })
+      const newRack = [...rack]
+      if (subrackIndex == null) {
+        newRack.push([rackTile])
+        set({
+          rack: newRack,
+          game: {
+            ...game,
+            players: newPlayers
+          }
+        })
+        return
+      }
+      const subrack = newRack[subrackIndex]
+      if (subrack == null) {
+        return
+      }
+      const isSameNumber = subrack.filter(([value]) => value !== JOKER).every(t => t[0] === tile[0])
+      if (isSameNumber) {
+        const isColorInUse = subrack.filter(([value]) => value !== JOKER).some(t => t[1] === tile[1])
+        if (isColorInUse) {
+          newRack.push([rackTile])
+        } else {
+          subrack.push(rackTile)
+        }
+        set({
+          rack: newRack.filter(tiles => tiles.length > 0),
+          game: {
+            ...game,
+            players: newPlayers
+          }
+        })
+        return
+      }
+      const isSameColor = subrack.filter(([value]) => value !== JOKER).every(t => t[1] === tile[1])
+      if (!isSameColor) {
+        newRack.push([rackTile])
+        set({
+          rack: [...newRack.filter(tiles => tiles.length > 0), [rackTile]],
+          game: {
+            ...game,
+            players: newPlayers
+          }
+        })
+        return
+      }
+      const stairPosition = getSubrackStairPosition({subrack, tile: rackTile})
+      if (stairPosition == null) {
+        newRack.push([rackTile])
+        set({
+          rack: newRack.filter(tiles => tiles.length > 0),
+          game: {
+            ...game,
+            players: newPlayers
+          }
+        })
+        return
+      }
+      subrack.splice(stairPosition, 0, rackTile)
       set({
         rack: newRack.filter(tiles => tiles.length > 0),
         game: {
@@ -95,3 +148,24 @@ export const useGameStore = create<GameStore>()(
     }
   })
 )
+
+function getSubrackStairPosition ({subrack, tile}: {subrack: RackTile[]; tile: RackTile}): number | undefined {
+  // method to get posible postion of tile in stair subrack
+  // return position of stair
+  // return undefined if tile is not in stair
+  const stair = subrack.map(t => t[0])
+  const tileValue = tile[0]
+  for (let i = 0; i < stair.length; i++) {
+    const step = stair[i]
+    if (step === tileValue) {
+      return undefined
+    }
+    if (step === tileValue - 1) {
+      return i
+    }
+    if (step === tileValue + 1) {
+      return i + 1
+    }
+  }
+  return undefined
+}

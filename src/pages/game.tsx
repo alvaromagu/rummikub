@@ -95,7 +95,7 @@ function GameBoardRack() {
 
   return (
     <div
-      className='flex-1 flex max-h-50 border rounded p-2 gap-4'
+      className='flex-1 flex flex-wrap max-h-50 border rounded p-2 gap-4'
       onDrop={event => {
         event.preventDefault()
         const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as GameTile
