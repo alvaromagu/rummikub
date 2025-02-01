@@ -44,7 +44,7 @@ export const useGameStore = create<GameStore>()(
         }
         return p
       })
-      const filterFromRack = rack.map(tiles => tiles.filter(t => t[2] !== tile[2]))
+      const filterFromRack = rack.map(tiles => tiles.filter(t => t[2] !== tile[2])).filter(tiles => tiles.length > 0)
       const newRack = [...filterFromRack]
       if (subrackIndex == null) {
         newRack.push([rackTile])
@@ -59,6 +59,17 @@ export const useGameStore = create<GameStore>()(
       }
       const subrack = newRack[subrackIndex]
       if (subrack == null) {
+        return
+      }
+      if (tile[0] === JOKER) {
+        subrack.push(rackTile)
+        set({
+          rack: newRack.filter(tiles => tiles.length > 0),
+          game: {
+            ...game,
+            players: newPlayers
+          }
+        })
         return
       }
       const isSameNumber = subrack.filter(([value]) => value !== JOKER).every(t => t[0] === tile[0])
@@ -82,7 +93,7 @@ export const useGameStore = create<GameStore>()(
       if (!isSameColor) {
         newRack.push([rackTile])
         set({
-          rack: [...newRack.filter(tiles => tiles.length > 0), [rackTile]],
+          rack: [...newRack.filter(tiles => tiles.length > 0)],
           game: {
             ...game,
             players: newPlayers
@@ -153,15 +164,30 @@ function getSubrackStairPosition ({subrack, tile}: {subrack: RackTile[]; tile: R
   // return undefined if tile is not in stair
   const stair = subrack.map(t => t[0])
   const tileValue = tile[0]
+  const isValueInStair = stair.some(step => step === tileValue)
+  if (isValueInStair) {
+    return undefined
+  }
+  const nextValueIndex = stair.findIndex(step => step === tileValue + 1)
+  if (nextValueIndex !== -1) {
+    return nextValueIndex
+  }
+  const previousValueIndex = stair.findIndex(step => step === tileValue - 1)
+  if (previousValueIndex !== -1) {
+    return previousValueIndex + 1
+  }
+  // check if can be placed with jokers
   for (let i = 0; i < stair.length; i++) {
     const step = stair[i]
-    if (step === tileValue) {
-      return undefined
+    if (step !== JOKER) {
+      continue
     }
-    if (step === tileValue - 1) {
+    const nextStep = stair[i + 1]
+    const prevStep = stair[i - 1]
+    if (nextStep === tileValue + 2) {
       return i
     }
-    if (step === tileValue + 1) {
+    if (prevStep === tileValue - 2) {
       return i + 1
     }
   }
