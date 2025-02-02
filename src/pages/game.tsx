@@ -79,11 +79,11 @@ function GameBoard({
   return (
     <>
       <GameBoardHeader />
-      <GameBoardRack />
-      <div className='flex px-2'>
-        <PlayerTiles />
+      <div className='flex flex-1 max-h-50 gap-2'>
+        <GameBoardRack />
         <PlayerActions />
       </div>
+      <PlayerTiles />
       <GameBoardStart />
     </>
   )
@@ -96,7 +96,7 @@ function GameBoardRack() {
 
   return (
     <div
-      className='flex-1 flex flex-wrap max-h-50 border rounded p-2 gap-4'
+      className='flex flex-wrap flex-1 border rounded p-2 gap-4'
       onDrop={event => {
         event.preventDefault()
         const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as GameTile
@@ -232,7 +232,7 @@ function PlayerActions() {
 
   if (hasModifiedRack) {
     return (
-      <div className='flex flex-1 gap-2 justify-center items-center'>
+      <div className='flex flex-col gap-2 justify-center items-center max-w-20'>
         <Button
           className='flex flex-col justify-center items-center gap-2 font-semibold px-1 py-6 h-fit'
           onClick={() => {
@@ -259,9 +259,9 @@ function PlayerActions() {
   }
   
   return (
-    <div className='flex flex-1 gap-2 justify-center items-center'>
+    <div className='flex gap-2 justify-center items-center max-w-20'>
       <Button
-        className='flex flex-col justify-center items-center gap-2 font-semibold px-1 py-6 h-fit'
+        className='flex flex-col justify-center items-center gap-2 font-semibold px-2 py-6 h-fit'
         disabled={!isPlayerTurn}
         onClick={async () => {
           await drawTile({ gameId, playerId })
