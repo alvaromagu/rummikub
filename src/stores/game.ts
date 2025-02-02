@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { Game, GameTile } from '../types/game'
 import { JOKER } from '../utils/constants'
 
-type RackTile = [...GameTile, number | undefined]
+export type RackTile = [...GameTile, number | undefined]
 
 interface GameStore {
   game: Game | null

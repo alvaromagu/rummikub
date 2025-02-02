@@ -15,6 +15,7 @@ import { useSessionStore } from '../stores/session'
 import { GameTile, Tile } from '../types/game'
 import { cn } from '../utils/cn'
 import { JOKER } from '../utils/constants'
+import { endTurn } from '../services/end-turn'
 
 export default function Game() {
   const { player } = useSessionStore()
@@ -242,6 +243,14 @@ function PlayerActions() {
         </Button>
         <Button
           className='flex flex-col justify-center items-center gap-2 font-semibold px-1 py-6 h-fit'
+          onClick={async () => {
+            console.log('submitting rack')
+            await endTurn({
+              gameId,
+              playerId,
+              newRack: rack
+            })
+          }}
         >
           Submit Rack
         </Button>
