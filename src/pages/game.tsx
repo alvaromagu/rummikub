@@ -10,12 +10,19 @@ import { drawTile } from '../services/draw-tile'
 import { getGame } from '../services/get-game'
 import { listenGame } from '../services/listen-game'
 import { startGame } from '../services/start-game'
-import { useGameStore } from '../stores/game'
+import { tileSorterByColor, tileSorterByValue, useGameStore } from '../stores/game'
 import { useSessionStore } from '../stores/session'
 import { GameTile, Tile } from '../types/game'
 import { cn } from '../utils/cn'
 import { JOKER } from '../utils/constants'
 import { endTurn } from '../services/end-turn'
+
+const tileColorMap: Record<Tile[1], string> = {
+  red: 'text-[#c90000]',
+  blue: 'text-[#0051d5]',
+  black: 'text-[#2a2a2a]',
+  yellow: 'text-[#b78a00]',
+}
 
 export default function Game() {
   const { player } = useSessionStore()
@@ -83,9 +90,41 @@ function GameBoard({
         <GameBoardRack />
         <PlayerActions />
       </div>
-      <PlayerTiles />
+      <div className='flex flex-col gap-2'>
+        <PlayerTiles />
+        <TilesHelper />
+      </div>
       <GameBoardStart />
     </>
+  )
+}
+
+function TilesHelper() {
+  const sortTiles = useGameStore(store => store.sortTiles)
+  const playerId = useSessionStore(store => store.player?.id)
+
+  if (playerId == null) {
+    return
+  }
+
+  const sortByValue = () => sortTiles({ playerId, tileSorter: tileSorterByValue })
+  const sortByColor = () => sortTiles({ playerId, tileSorter: tileSorterByColor })
+
+  return (
+    <div className='flex justify-center gap-2'>
+      <Button 
+        className='flex gap-1 font-semibold'
+        onClick={sortByValue}
+      >
+        777
+      </Button>
+      <Button 
+        className='flex gap-1 font-semibold'
+        onClick={sortByColor}
+      >
+        789
+      </Button>
+    </div>
   )
 }
 
@@ -110,8 +149,8 @@ function GameBoardRack() {
       }}
     >
       {rack.map((tiles, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className='gap-0.5 p-2 border h-fit flex'
           onDrop={event => {
             event.preventDefault()
@@ -170,13 +209,6 @@ function GameBoardHeader() {
       ))}
     </ul>
   )
-}
-
-const tileColorMap: Record<Tile[1], string> = {
-  red: 'text-[#c90000]',
-  blue: 'text-[#0051d5]',
-  black: 'text-[#2a2a2a]',
-  yellow: 'text-[#b78a00]',
 }
 
 function PlayerTiles() {
@@ -257,7 +289,7 @@ function PlayerActions() {
       </div>
     )
   }
-  
+
   return (
     <div className='flex gap-2 justify-center items-center max-w-20'>
       <Button

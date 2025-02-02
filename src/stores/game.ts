@@ -10,6 +10,7 @@ interface GameStore {
   setGame: (game: Game) => void
   dropTile: (params: { tile: GameTile; playerId: number; subrackIndex?: number }) => void
   resetRack: (params: { playerId: number }) => void
+  sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => void
 }
 
 export const useGameStore = create<GameStore>()(
@@ -124,8 +125,6 @@ export const useGameStore = create<GameStore>()(
     },
     resetRack: ({
       playerId
-    }: {
-      playerId: number
     }) => {
       const { game, rack } = get()
       if (game == null) {
@@ -154,9 +153,49 @@ export const useGameStore = create<GameStore>()(
           players: newPlayers
         }
       })
+    },
+    sortTiles: ({
+      playerId,
+      tileSorter
+    }) => {
+      const { game } = get()
+      if (game == null) {
+        return
+      }
+      const playerTiles = game.players.find(p => p.id === playerId)?.tiles
+      if (playerTiles == null) {
+        return
+      }
+      const sortedTiles = [...playerTiles].sort(tileSorter)
+      const newPlayers = game.players.map(p => {
+        if (p.id === playerId) {
+          return {
+            ...p,
+            tiles: sortedTiles
+          }
+        }
+        return p
+      })
+      set({
+        game: {
+          ...game,
+          players: newPlayers
+        }
+      })
     }
-  })
+  }),
 )
+
+export type GameTileSorter = (a: GameTile, b: GameTile) => number
+
+export function tileSorterByValue (a: GameTile, b: GameTile): number {
+  return a[0] - b[0]
+}
+
+export function tileSorterByColor (a: GameTile, b: GameTile): number {
+  return a[1].localeCompare(b[1])
+}
+
 
 function getSubrackStairPosition ({subrack, tile}: {subrack: RackTile[]; tile: RackTile}): number | undefined {
   // method to get posible postion of tile in stair subrack
