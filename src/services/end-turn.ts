@@ -1,5 +1,6 @@
 import { RackTile } from '../stores/game'
 import supabase from '../supabase/client'
+import { ServiceError } from '../types/error'
 import { GameTile } from '../types/game'
 import { getGame } from './get-game'
 
@@ -11,28 +12,27 @@ export async function endTurn({
   gameId: number
   playerId: number
   newRack: RackTile[][]
-}): Promise<{ error: boolean; }> {
+}): Promise<ServiceError> {
   const game = await getGame({ id: gameId })
   if (game == null) {
-    return { error: true }
+    return { error: true, message: 'Game not found' }
   }
   const { id, players, started, turn_id } = game
   if (!started) {
-    return { error: true }
+    return { error: true, message: 'Game not started' }
   }
   if (turn_id !== playerId) {
-    return { error: true }
+    return { error: true, message: 'Not your turn' }
   }
   const playerIndex = players.findIndex(p => p.id === playerId)
   if (playerIndex === -1) {
-    return { error: true }
+    return { error: true, message: 'Player not found' }
   }
   const player = players[playerIndex]
   const playerTiles = player.tiles
-  const isRackValid = validateRack({ oldRack: game.rack_tiles, newRack, playerTiles })
-  console.log({ isRackValid })
-  if (!isRackValid) {
-    return { error: true }
+  const rackValidation = validateRack({ oldRack: game.rack_tiles, newRack, playerTiles })
+  if (rackValidation.error) {
+    return rackValidation
   }
   const rackTiles: GameTile[][] = newRack.map(row => row.map(tile => tile.slice(0, 3) as GameTile))
   const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => rackTiles.flat().find(t => t[2] === tileId) == null)
@@ -45,7 +45,7 @@ export async function endTurn({
     })
     .eq('id', id)
   if (error != null) {
-    return { error: true }
+    return { error: true, message: error.message }
   }
   return { error: false }
 }
@@ -58,23 +58,23 @@ function validateRack ({
   oldRack: GameTile[][]
   newRack: RackTile[][]
   playerTiles: GameTile[]
-}): boolean {
+}): ServiceError {
   const oldRackTiles = oldRack.flat()
   const newRackTiles = newRack.flat()
   const placedTiles = newRackTiles.filter(([,,, playerId]) => playerId != null)
   if (placedTiles.length === 0) {
-    return false
+    return { error: true, message: 'No tiles placed' }
   }
   const arePlacedTilesOfPlayer = placedTiles.every(([,,tileId]) => playerTiles.find(t => t[2] === tileId) != null)
   if (!arePlacedTilesOfPlayer) {
-    return false
+    return { error: true, message: 'Placed tiles not of player' }
   }
   // just check length of oldRack is same of newRack - placedTiles
   const oldRackTilesLength = oldRackTiles.length
   const newRackTilesLength = newRackTiles.length
   const placedTilesLength = placedTiles.length
   if (oldRackTilesLength !== newRackTilesLength - placedTilesLength) {
-    return false
+    return { error: true, message: 'Invalid rack length' }
   }
-  return true
+  return { error: false }
 }

@@ -10,9 +10,9 @@ import { drawTile } from '../services/draw-tile'
 import { getGame } from '../services/get-game'
 import { listenGame } from '../services/listen-game'
 import { startGame } from '../services/start-game'
-import { tileSorterByColor, tileSorterByValue, useGameStore } from '../stores/game'
+import { RackTile, tileSorterByColor, tileSorterByValue, useGameStore } from '../stores/game'
 import { useSessionStore } from '../stores/session'
-import { GameTile, Tile } from '../types/game'
+import { Tile } from '../types/game'
 import { cn } from '../utils/cn'
 import { JOKER } from '../utils/constants'
 import { endTurn } from '../services/end-turn'
@@ -86,7 +86,7 @@ function GameBoard({
   return (
     <>
       <GameBoardHeader />
-      <div className='flex flex-1 max-h-50 gap-2'>
+      <div className='flex min-h-50 gap-2'>
         <GameBoardRack />
         <PlayerActions />
       </div>
@@ -135,10 +135,10 @@ function GameBoardRack() {
 
   return (
     <div
-      className='flex flex-wrap flex-1 border rounded p-2 gap-4'
+      className='flex flex-wrap flex-1 border rounded p-2 gap-2'
       onDrop={event => {
         event.preventDefault()
-        const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as GameTile
+        const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as RackTile
         dropTile({
           playerId,
           tile,
@@ -155,7 +155,7 @@ function GameBoardRack() {
           onDrop={event => {
             event.preventDefault()
             event.stopPropagation()
-            const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as GameTile
+            const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as RackTile
             dropTile({
               playerId,
               tile: tile,
@@ -215,7 +215,7 @@ function PlayerTiles() {
   const playerId = useSessionStore(store => store.player?.id)
   const playerTiles = useGameStore(store => store.game?.players.find(p => p.id === playerId)?.tiles)
 
-  if (playerTiles == null) {
+  if (playerTiles == null || playerId == null) {
     return null
   }
 
@@ -232,7 +232,7 @@ function PlayerTiles() {
           }
           draggable
           onDragStart={event => {
-            event.dataTransfer.setData('text/plain', JSON.stringify([value, color, id]))
+            event.dataTransfer.setData('text/plain', JSON.stringify([value, color, id, playerId]))
           }}
         >
           {value === JOKER ? <Joker /> : value}
@@ -276,12 +276,14 @@ function PlayerActions() {
         <Button
           className='flex flex-col justify-center items-center gap-2 font-semibold px-1 py-6 h-fit'
           onClick={async () => {
-            console.log('submitting rack')
-            await endTurn({
+            const endTurnResult = await endTurn({
               gameId,
               playerId,
               newRack: rack
             })
+            if (endTurnResult.error) {
+              console.error(endTurnResult.message)
+            }
           }}
         >
           Submit Rack

@@ -8,7 +8,7 @@ interface GameStore {
   game: Game | null
   rack: RackTile[][]
   setGame: (game: Game) => void
-  dropTile: (params: { tile: GameTile; playerId: number; subrackIndex?: number }) => void
+  dropTile: (params: { tile: RackTile; playerId: number; subrackIndex?: number }) => void
   resetRack: (params: { playerId: number }) => void
   sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => void
 }
@@ -35,7 +35,7 @@ export const useGameStore = create<GameStore>()(
       if (playerTiles == null || (!playerTiles.some(t => t[2] === tile[2]) && !alreadyDropped)) {
         return
       }
-      const rackTile: RackTile = [...tile, playerId]
+      const rackTile: RackTile = [...tile]
       const newPlayers = game.players.map(p => {
         if (p.id === playerId) {
           return {

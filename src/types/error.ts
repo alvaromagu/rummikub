@@ -1,0 +1,1 @@
+export type ServiceError = { error: true; message: string } | { error: false; message?: undefined }
