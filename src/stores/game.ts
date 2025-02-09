@@ -33,6 +33,7 @@ export const useGameStore = create<GameStore>()(
       const playerTiles = game.players.find(p => p.id === playerId)?.tiles
       const alreadyDropped = rack.some(tiles => tiles.some(t => t[2] === tile[2]))
       if (playerTiles == null || (!playerTiles.some(t => t[2] === tile[2]) && !alreadyDropped)) {
+        console.error('Player does not have this tile')
         return
       }
       const rackTile: RackTile = [...tile]

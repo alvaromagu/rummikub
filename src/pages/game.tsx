@@ -86,12 +86,12 @@ function GameBoard({
   return (
     <>
       <GameBoardHeader />
-      <div className='flex min-h-50 gap-2'>
+      <div className='flex min-h-50'>
         <GameBoardRack />
-        <PlayerActions />
       </div>
       <div className='flex flex-col gap-2'>
         <PlayerTiles />
+        <PlayerActions />
         <TilesHelper />
       </div>
       <GameBoardStart />
@@ -264,9 +264,9 @@ function PlayerActions() {
 
   if (hasModifiedRack) {
     return (
-      <div className='flex flex-col gap-2 justify-center items-center max-w-20'>
+      <div className='flex justify-center gap-2'>
         <Button
-          className='flex flex-col justify-center items-center gap-2 font-semibold px-1 py-6 h-fit'
+          className='flex font-semibold'
           onClick={() => {
             resetRack({ playerId })
           }}
@@ -274,7 +274,7 @@ function PlayerActions() {
           Reset Rack
         </Button>
         <Button
-          className='flex flex-col justify-center items-center gap-2 font-semibold px-1 py-6 h-fit'
+          className='flex font-semibold'
           onClick={async () => {
             const endTurnResult = await endTurn({
               gameId,
@@ -293,9 +293,9 @@ function PlayerActions() {
   }
 
   return (
-    <div className='flex gap-2 justify-center items-center max-w-20'>
+    <div className='flex justify-center'>
       <Button
-        className='flex flex-col justify-center items-center gap-2 font-semibold px-2 py-6 h-fit'
+        className='flex justify-center items-center gap-2 font-semibold'
         disabled={!isPlayerTurn}
         onClick={async () => {
           await drawTile({ gameId, playerId })
