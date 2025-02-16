@@ -15,7 +15,10 @@ export type Game = {
   players: GamePlayer[]
   rack_tiles: GameTile[][]
   tiles_pool: Tile[]
-  started: boolean
+  started: GameStateEnum
   created_by: number
   turn_id: number | null
+  winner_id: number | null
 }
+
+export type GameStateEnum = 'not_started' | 'started' | 'finished'

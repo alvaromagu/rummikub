@@ -18,8 +18,8 @@ export async function endTurn({
     return { error: true, message: 'Game not found' }
   }
   const { id, players, started, turn_id } = game
-  if (!started) {
-    return { error: true, message: 'Game not started' }
+  if (started !== 'started') {
+    return { error: true, message: 'Game is not in started state' }
   }
   if (turn_id !== playerId) {
     return { error: true, message: 'Not your turn' }
@@ -36,12 +36,15 @@ export async function endTurn({
   }
   const rackTiles: GameTile[][] = newRack.map(row => row.map(tile => tile.slice(0, 3) as GameTile))
   const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => rackTiles.flat().find(t => t[2] === tileId) == null)
+  const hasWon = newPlayerTiles.length === 0
   const { error } = await supabase
     .from('games')
     .update({
       rack_tiles: rackTiles,
       players: players.map(p => p.id === playerId ? { ...p, tiles: newPlayerTiles } : p) as [],
-      turn_id: players[(playerIndex + 1) % players.length].id
+      turn_id: players[(playerIndex + 1) % players.length].id,
+      winner_id: hasWon ? playerId : null,
+      started: hasWon ? 'finished' : 'started'
     })
     .eq('id', id)
   if (error != null) {

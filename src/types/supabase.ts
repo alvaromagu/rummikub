@@ -1,3 +1,5 @@
+import { GameStateEnum } from './game'
+
 export type Json =
   | string
   | number
@@ -40,27 +42,30 @@ export type Database = {
           id: number
           players: Json
           rack_tiles: Json
-          started: boolean
+          started: Database['public']['Enums']['game_state']
           tiles_pool: Json
           turn_id: number | null
+          winner_id: number | null
         }
         Insert: {
           created_by: number
           id?: number
           players?: Json
           rack_tiles?: Json
-          started?: boolean
+          started?: Database['public']['Enums']['game_state']
           tiles_pool?: Json
           turn_id?: number | null
+          winner_id?: number | null
         }
         Update: {
           created_by?: number
           id?: number
           players?: Json
           rack_tiles?: Json
-          started?: boolean
+          started?: Database['public']['Enums']['game_state']
           tiles_pool?: Json
           turn_id?: number | null
+          winner_id?: number | null
         }
         Relationships: [
           {
@@ -73,6 +78,13 @@ export type Database = {
           {
             foreignKeyName: 'games_turn_id_fkey'
             columns: ['turn_id']
+            isOneToOne: false
+            referencedRelation: 'players'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'games_winner_id_fkey'
+            columns: ['winner_id']
             isOneToOne: false
             referencedRelation: 'players'
             referencedColumns: ['id']
@@ -102,7 +114,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      game_state: GameStateEnum
     }
     CompositeTypes: {
       [_ in never]: never

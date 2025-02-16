@@ -14,7 +14,7 @@ export async function drawTile({
     return { error: true }
   }
   const { id, players, started, tiles_pool, turn_id } = game
-  if (!started) {
+  if (started !== 'started') {
     return { error: true }
   }
   if (turn_id !== playerId) {

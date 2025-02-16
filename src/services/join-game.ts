@@ -20,7 +20,7 @@ export async function joinGame({
   if (playerAlreadyInGame) {
     return { error: false, id }
   }
-  if (started) {
+  if (started !== 'not_started') {
     return { error: true }
   }
   if (players.length >= MAX_PLAYERS) {

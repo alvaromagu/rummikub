@@ -13,7 +13,7 @@ export async function startGame({
     return { error: true }
   }
   const { id, players, started } = game
-  if (started) {
+  if (started !== 'not_started') {
     return { error: true }
   }
   if (players.length < MIN_PLAYERS) {
@@ -35,7 +35,7 @@ export async function startGame({
     .from('games')
     .update({
       players: newGamePlayers,
-      started: true,
+      started: 'started',
       turn_id: firstTurnPlayer,
       tiles_pool: initialTiles
     })

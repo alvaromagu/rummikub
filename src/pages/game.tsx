@@ -1,5 +1,5 @@
 import { RealtimeChannel } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Redirect, useLocation, useParams } from 'wouter'
 import { Button } from '../components/button'
 import { Card } from '../components/card'
@@ -16,6 +16,8 @@ import { Tile } from '../types/game'
 import { cn } from '../utils/cn'
 import { JOKER } from '../utils/constants'
 import { endTurn } from '../services/end-turn'
+import { Link } from '../components/link'
+import Confetti from 'react-confetti'
 
 const tileColorMap: Record<Tile[1], string> = {
   red: 'text-[#c90000]',
@@ -54,6 +56,7 @@ function GameBoard({
   const [, navigate] = useLocation()
   const [loading, setLoading] = useState(true)
   const setGame = useGameStore((store) => store.setGame)
+  const gameStarted = useGameStore(store => store.game?.started)
 
   useEffect(() => {
     setLoading(true)
@@ -89,13 +92,81 @@ function GameBoard({
       <div className='flex min-h-50'>
         <GameBoardRack />
       </div>
-      <div className='flex flex-col gap-2'>
-        <PlayerTiles />
-        <PlayerActions />
-        <TilesHelper />
-      </div>
+      {gameStarted !== 'not_started' && (
+        <div className='flex flex-col gap-2'>
+          <PlayerTiles />
+          {gameStarted === 'started' && (
+            <>
+              <PlayerActions />
+              <TilesHelper />
+            </>
+          )}
+        </div>
+      )}
+      <WinnerDialog />
       <GameBoardStart />
     </>
+  )
+}
+
+function WinnerDialog() {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const winnerId = useGameStore(store => store.game?.winner_id)
+  const players = useGameStore(store => store.game?.players)
+  const started = useGameStore(store => store.game?.started)
+  const playerId = useSessionStore(store => store.player?.id)
+
+  useEffect(() => {
+    const dialogElement = dialogRef.current
+
+    if (started === 'finished') {
+      dialogElement?.showModal()
+    }
+
+    return () => {
+      dialogElement?.close()
+    }
+  }, [started])
+
+  if (players == null || started == null) {
+    return null
+  }
+
+  // TODO: CHECK DRAW
+
+  const playersScore = players.map(player => ({ id: player.id, score: player.tiles.reduce((acc, [value]) => acc + value, 0) })).sort((a, b) => a.score - b.score)
+
+  return (
+    <dialog ref={dialogRef} className='bg-transparent backdrop:bg-black backdrop:opacity-90 max-w-none max-h-none w-full h-dvh open:grid place-content-center'>
+      <div className='bg-black px-10 py-2 rounded border'>
+        <header className='mb-5 border-b'>
+          <h2 className='text-center text-2xl font-semibold'>
+            Game Over
+          </h2>
+        </header>
+        <ul className='flex flex-col gap-2 '>
+          {playersScore.map(({ id, score }, index) => (
+            <li
+              key={id}
+              className={cn(
+                'bg-zinc-800 rounded px-2 border border-transparent grid grid-cols-[10px_1fr_1fr] gap-4',
+                winnerId === id && 'text-yellow-500'
+              )}
+            >
+              <span>{index + 1}</span>
+              <span>{players.find(player => player.id === id)?.name}</span>
+              <span>{score}</span>
+            </li>
+          ))}
+        </ul>
+        <footer className='mt-5 flex justify-center'>
+          <Link href='/' className='bg-zinc-800 px-4 py-1 rounded'>
+            Back to home
+          </Link>
+        </footer>
+        {playerId === winnerId && <Confetti />}
+      </div>
+    </dialog>
   )
 }
 
@@ -112,13 +183,13 @@ function TilesHelper() {
 
   return (
     <div className='flex justify-center gap-2'>
-      <Button 
+      <Button
         className='flex gap-1 font-semibold'
         onClick={sortByValue}
       >
         777
       </Button>
-      <Button 
+      <Button
         className='flex gap-1 font-semibold'
         onClick={sortByColor}
       >
@@ -322,7 +393,7 @@ function GameBoardStart() {
     return null
   }
 
-  if (started || created_by !== playerId) {
+  if (started !== 'not_started' || created_by !== playerId) {
     return null
   }
 
