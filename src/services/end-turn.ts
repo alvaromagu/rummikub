@@ -2,6 +2,7 @@ import { RackTile } from '../stores/game'
 import supabase from '../supabase/client'
 import { ServiceError } from '../types/error'
 import { GameTile } from '../types/game'
+import { JOKER } from '../utils/constants'
 import { getGame } from './get-game'
 
 export async function endTurn({
@@ -79,5 +80,67 @@ function validateRack ({
   if (oldRackTilesLength !== newRackTilesLength - placedTilesLength) {
     return { error: true, message: 'Invalid rack length' }
   }
+  // check subracks are valid
+  for (const row of newRack) {
+    const result = validateRow({row})
+    if (result.error) {
+      return result
+    }
+  }
+  return { error: false }
+}
+
+export function validateRow ({
+  row
+}: {
+  row: RackTile[]
+}): ServiceError {
+  if (row.length <= 2) {
+    return { error: true, message: 'Invalid row length' }
+  }
+  const rowWithoutJokers = row.filter(([value]) => value !== JOKER)
+  const isSameNumberRow = rowWithoutJokers.every(([value]) => value === row[0][0])
+  if (isSameNumberRow) {
+    const colors = new Set([...row.map(([,color]) => color)])
+    if (colors.size !== rowWithoutJokers.length) {
+      return { error: true, message: 'Can\'t repeat colors' }
+    }
+    return { error: false }
+  }
+  // is stair row
+  if (rowWithoutJokers.length === 1) {
+    return { error: false }
+  }
+  const allHaveSameColor = rowWithoutJokers.every(([,color]) => color === row[0][1])
+  if (!allHaveSameColor) {
+    return { error: true, message: 'Colors don\'t match' }
+  }
+  let checkedFirstNonJoker = false
+
+  for (let i = 0; i < row.length - 1; i++) {
+    const [value,] = row[i]
+    if (value === JOKER) {
+      continue
+    }
+    if (!checkedFirstNonJoker) {
+      checkedFirstNonJoker = true
+      continue
+    }
+    const [prevValue,] = row[i - 1]
+    if (prevValue === JOKER) {
+      const [secondPrevValue,] = row[i - 2]
+      if (secondPrevValue === JOKER) {
+        const [thirdPrevValue,] = row[i - 3]
+        if (Math.abs(value - thirdPrevValue) !== 3) {
+          return { error: true, message: 'Invalid stair' }
+        }
+      } else if (Math.abs(value - secondPrevValue) !== 2) {
+        return { error: true, message: 'Invalid stair' }
+      }
+    } else if (Math.abs(value - prevValue) !== 1) {
+      return { error: true, message: 'Invalid stair' }
+    }
+  }
+
   return { error: false }
 }
