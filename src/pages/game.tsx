@@ -56,7 +56,7 @@ function GameBoard({
   const [, navigate] = useLocation()
   const [loading, setLoading] = useState(true)
   const setGame = useGameStore((store) => store.setGame)
-  const gameStarted = useGameStore(store => store.game?.started)
+  const gameStarted = useGameStore(store => store.game.started)
 
   useEffect(() => {
     setLoading(true)
@@ -82,7 +82,7 @@ function GameBoard({
     }
   }, [id, navigate, setGame])
 
-  if (loading) {
+  if (loading || gameStarted == null) {
     return <p>Loading...</p>
   }
 
@@ -111,10 +111,10 @@ function GameBoard({
 
 function WinnerDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const winnerId = useGameStore(store => store.game?.winner_id)
-  const players = useGameStore(store => store.game?.players)
-  const started = useGameStore(store => store.game?.started)
-  const playerId = useSessionStore(store => store.player?.id)
+  const winnerId = useGameStore(store => store.game.winner_id)
+  const players = useGameStore(store => store.game.players)
+  const started = useGameStore(store => store.game.started)
+  const playerId = useSessionStore(store => store.player!.id)
 
   useEffect(() => {
     const dialogElement = dialogRef.current
@@ -172,11 +172,7 @@ function WinnerDialog() {
 
 function TilesHelper() {
   const sortTiles = useGameStore(store => store.sortTiles)
-  const playerId = useSessionStore(store => store.player?.id)
-
-  if (playerId == null) {
-    return
-  }
+  const playerId = useSessionStore(store => store.player!.id)
 
   const sortByValue = () => sortTiles({ playerId, tileSorter: tileSorterByValue })
   const sortByColor = () => sortTiles({ playerId, tileSorter: tileSorterByColor })
@@ -260,12 +256,8 @@ function GameBoardRack() {
 }
 
 function GameBoardHeader() {
-  const players = useGameStore((store) => store.game?.players)
-  const turnId = useGameStore(store => store.game?.turn_id)
-
-  if (players == null || turnId == null) {
-    return null
-  }
+  const players = useGameStore((store) => store.game.players)
+  const turnId = useGameStore(store => store.game.turn_id)
 
   return (
     <ul className='flex gap-2'>
@@ -283,10 +275,10 @@ function GameBoardHeader() {
 }
 
 function PlayerTiles() {
-  const playerId = useSessionStore(store => store.player?.id)
-  const playerTiles = useGameStore(store => store.game?.players.find(p => p.id === playerId)?.tiles)
+  const playerId = useSessionStore(store => store.player!.id)
+  const playerTiles = useGameStore(store => store.game.players.find(p => p.id === playerId)?.tiles)
 
-  if (playerTiles == null || playerId == null) {
+  if (playerTiles == null) {
     return null
   }
 
@@ -316,12 +308,12 @@ function PlayerTiles() {
 function PlayerActions() {
   const rack = useGameStore(store => store.rack)
   const resetRack = useGameStore(store => store.resetRack)
-  const gameId = useGameStore(store => store.game?.id)
-  const playerId = useSessionStore(store => store.player?.id)
-  const turnId = useGameStore(store => store.game?.turn_id)
-  const tilesPool = useGameStore(store => store.game?.tiles_pool.length)
+  const gameId = useGameStore(store => store.game.id)
+  const playerId = useSessionStore(store => store.player!.id)
+  const turnId = useGameStore(store => store.game.turn_id)
+  const tilesPool = useGameStore(store => store.game.tiles_pool.length)
 
-  if (gameId == null || playerId == null || turnId == null || tilesPool == null) {
+  if (turnId == null) {
     return null
   }
 
@@ -383,15 +375,11 @@ function PlayerActions() {
 }
 
 function GameBoardStart() {
-  const started = useGameStore(store => store.game?.started)
-  const created_by = useGameStore(store => store.game?.created_by)
-  const playersLength = useGameStore(store => store.game?.players.length)
-  const playerId = useSessionStore(store => store.player?.id)
-  const gameId = useGameStore(store => store.game?.id)
-
-  if (started == null || created_by == null || playersLength == null || playerId == null || gameId == null) {
-    return null
-  }
+  const started = useGameStore(store => store.game.started)
+  const created_by = useGameStore(store => store.game.created_by)
+  const playersLength = useGameStore(store => store.game.players.length)
+  const playerId = useSessionStore(store => store.player!.id)
+  const gameId = useGameStore(store => store.game.id)
 
   if (started !== 'not_started' || created_by !== playerId) {
     return null

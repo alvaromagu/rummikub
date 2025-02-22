@@ -5,7 +5,7 @@ import { JOKER } from '../utils/constants'
 export type RackTile = [...GameTile, number | undefined]
 
 interface GameStore {
-  game: Game | null
+  game: Game
   rack: RackTile[][]
   setGame: (game: Game) => void
   dropTile: (params: { tile: RackTile; playerId: number; subrackIndex?: number }) => void
@@ -15,7 +15,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>()(
   (set, get) => ({
-    game: null,
+    game: null as unknown as Game,
     rack: [],
     setGame: (game) => { 
       set({ game, rack: game.rack_tiles.map(tiles => tiles.map(tile => [...tile, undefined])) })
