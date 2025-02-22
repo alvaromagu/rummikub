@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Route, Switch } from 'wouter'
 import { Layout } from './components/layout'
 
-const lazyGame = lazy(() => import('./pages/game'))
+const lazyGame = lazy(() => import('./pages/game/page'))
 const lazyHome = lazy(() => import('./pages/home'))
 const lazyLogin = lazy(() => import('./pages/login'))
 
