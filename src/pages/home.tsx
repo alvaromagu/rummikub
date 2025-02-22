@@ -6,14 +6,28 @@ import { UnauthorizedRedirect } from '../components/unauthorized-redirect'
 import { useSessionStore } from '../stores/session'
 import { createGame } from '../services/create-game'
 import { joinGame } from '../services/join-game'
+import { useEffect, useState } from 'react'
+import { getPlayerGames } from '../services/player-games'
+import { Link } from '../components/link'
 
 type JoinGameForm = {
   gameCode: string
 }
 
-export default function Home () {
+export default function Home() {
   const [, navigate] = useLocation()
   const { player } = useSessionStore()
+  const [games, setPlayerGames] = useState<{ id: number }[]>([])
+
+  useEffect(() => {
+    if (player?.id == null) {
+      return
+    }
+    (async () => {
+      const playerGames = await getPlayerGames({ playerId: player.id })
+      setPlayerGames(playerGames ?? [])
+    })()
+  }, [player?.id])
 
   if (player == null) {
     return <UnauthorizedRedirect />
@@ -22,15 +36,27 @@ export default function Home () {
   return (
     <div className='flex flex-col gap-2'>
       <H1>Home</H1>
+      {games.length > 0 && (
+        <ul className='flex flex-col gap-2'>
+          {games.map(game => (
+            <li key={game.id} className='w-full'>
+              <Link href={`/game/${game.id}`} className='px-2 py-1 bg-zinc-900 flex items-center justify-between rounded'>
+                <span>Game {game.id}</span>
+                <svg xmlns='http://www.w3.org/2000/svg' width={24} height={24} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round' className='icon icon-tabler icons-tabler-outline icon-tabler-arrow-right'><path stroke='none' d='M0 0h24v24H0z' fill='none' /><path d='M5 12l14 0' /><path d='M13 18l6 -6' /><path d='M13 6l6 6' /></svg>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
       <Button onClick={async () => {
-        const {data, error} = await createGame({
+        const { data, error } = await createGame({
           player
         })
         if (error != null) {
           console.error(error)
           return
         }
-        const {id} = data
+        const { id } = data
         navigate(`/game/${id}`)
       }}>
         Create game
