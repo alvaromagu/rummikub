@@ -7,18 +7,31 @@ export type RackTile = [...GameTile, number | undefined]
 interface GameStore {
   game: Game
   rack: RackTile[][]
+  flatRack: Array<RackTile | undefined>
   setGame: (game: Game) => void
   dropTile: (params: { tile: RackTile; playerId: number; subrackIndex?: number }) => void
+  dropFlatTile: (params: { tile: RackTile; playerId: number; index: number }) => void
   resetRack: (params: { playerId: number }) => void
+  resetFlatRack: (params: { playerId: number }) => void
   sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => void
 }
+
+export const initialColumns = 12
+export const initialRows = 4
+const initialTiles: Array<RackTile | undefined> = Array.from(
+  { length: initialColumns * initialRows },
+)
 
 export const useGameStore = create<GameStore>()(
   (set, get) => ({
     game: null as unknown as Game,
     rack: [],
+    flatRack: [...initialTiles],
     setGame: (game) => { 
-      set({ game, rack: game.rack_tiles.map(tiles => tiles.map(tile => [...tile, undefined])) })
+      set({ 
+        game, 
+        rack: game.rack_tiles.map(tiles => tiles.map(tile => [...tile, undefined])) 
+      })
     },
     dropTile: ({
       tile, playerId, subrackIndex
@@ -124,6 +137,44 @@ export const useGameStore = create<GameStore>()(
         }
       })
     },
+    dropFlatTile: ({
+      tile, playerId, index
+    }) => {
+      const { game, flatRack } = get()
+      if (game == null) {
+        return
+      }
+      if (game.turn_id !== playerId) {
+        return
+      }
+      const playerTiles = game.players.find(p => p.id === playerId)?.tiles
+      if (playerTiles == null || !playerTiles.some(t => t[2] === tile[2])) {
+        console.error('Player does not have this tile')
+        return
+      }
+      if (flatRack[index] != null) {
+        console.error('Cannot drop tile', tile)
+        return
+      }
+      const newFlatRack = [...flatRack]
+      newFlatRack[index] = tile
+      const newPlayers = game.players.map(p => {
+        if (p.id === playerId) {
+          return {
+            ...p,
+            tiles: p.tiles.filter(t => t[2] !== tile[2])
+          }
+        }
+        return p
+      })
+      set({
+        flatRack: newFlatRack,
+        game: {
+          ...game,
+          players: newPlayers
+        }
+      })
+    },
     resetRack: ({
       playerId
     }) => {
@@ -149,6 +200,37 @@ export const useGameStore = create<GameStore>()(
       })
       set({
         rack: newRack.filter(tiles => tiles.length > 0),
+        game: {
+          ...game,
+          players: newPlayers
+        }
+      })
+    },
+    resetFlatRack: ({
+      playerId
+    }) => {
+      const { game, flatRack } = get()
+      if (game == null) {
+        return
+      }
+      const playerTiles = game.players.find(p => p.id === playerId)?.tiles
+      if (playerTiles == null) {
+        return
+      }
+      const flatRackPlayerTiles = flatRack.filter(t => t != null && t[3] === playerId) as RackTile[]
+      const newPlayerTiles = [...playerTiles, ...(flatRackPlayerTiles.map(t => [t[0], t[1], t[2]]) as GameTile[])]
+      const newFlatRack = [...initialTiles]
+      const newPlayers = game.players.map(p => {
+        if (p.id === playerId) {
+          return {
+            ...p,
+            tiles: newPlayerTiles
+          }
+        }
+        return p
+      })
+      set({
+        flatRack: newFlatRack,
         game: {
           ...game,
           players: newPlayers
