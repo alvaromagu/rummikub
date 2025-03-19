@@ -54,6 +54,56 @@ export async function endTurn({
   return { error: false }
 }
 
+export function validateFlatRack ({
+  oldRackTiles,
+  newRackTiles,
+  playerTiles
+}: {
+  oldRackTiles: Array<RackTile | undefined>
+  newRackTiles: Array<RackTile | undefined>
+  playerTiles: GameTile[]
+}): ServiceError {
+  const placedTiles = newRackTiles.filter(t => t != null).filter(([,,, playerId]) => playerId != null)
+  if (placedTiles.length === 0) {
+    return { error: true, message: 'No tiles placed' }
+  }
+  const arePlacedTilesOfPlayer = placedTiles.every(([,,tileId]) => playerTiles.find(t => t[2] === tileId) != null)
+  if (!arePlacedTilesOfPlayer) {
+    return { error: true, message: 'Placed tiles not of player' }
+  }
+  // just check length of oldRack is same of newRack - placedTiles
+  const oldRackTilesLength = oldRackTiles.length
+  const newRackTilesLength = newRackTiles.length
+  const placedTilesLength = placedTiles.length
+  if (oldRackTilesLength !== newRackTilesLength - placedTilesLength) {
+    return { error: true, message: 'Invalid rack length' }
+  }
+  // check subracks are valid
+  const newRackRows = unflatRack({ rackTiles: newRackTiles })
+  for (const row of newRackRows) {
+    const result = validateRow({row})
+    if (result.error) {
+      return result
+    }
+  }
+  return { error: false }
+}
+
+export function unflatRack ({
+  rackTiles
+}: {
+  rackTiles: Array<RackTile | undefined>
+}): RackTile[][] {
+  return rackTiles.reduce((rows, tile) => {
+    if (tile == null) {
+      rows.push([])
+      return rows
+    }
+    rows[rows.length - 1].push(tile)
+    return rows
+  }, [] as RackTile[][]).filter(row => row.length > 0)
+}
+
 function validateRack ({
   oldRack,
   newRack,

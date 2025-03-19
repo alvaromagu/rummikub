@@ -148,8 +148,10 @@ export const useGameStore = create<GameStore>()(
         return
       }
       const playerTiles = game.players.find(p => p.id === playerId)?.tiles
-      if (playerTiles == null || !playerTiles.some(t => t[2] === tile[2])) {
-        console.error('Player does not have this tile')
+      const flatRackIndex = flatRack.findIndex(t => t?.[2] === tile[2])
+      const isInFlatRack = flatRackIndex !== -1
+      if (playerTiles == null || (!playerTiles.some(t => t[2] === tile[2]) && !isInFlatRack)) {
+        console.error('Cant move selected tile')
         return
       }
       if (flatRack[index] != null) {
@@ -157,6 +159,9 @@ export const useGameStore = create<GameStore>()(
         return
       }
       const newFlatRack = [...flatRack]
+      if (isInFlatRack) {
+        newFlatRack[flatRackIndex] = undefined
+      }
       newFlatRack[index] = tile
       const newPlayers = game.players.map(p => {
         if (p.id === playerId) {
