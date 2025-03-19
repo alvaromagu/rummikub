@@ -39,6 +39,7 @@ export type Database = {
       games: {
         Row: {
           created_by: number
+          flat_rack_tiles: Json
           id: number
           players: Json
           rack_tiles: Json
@@ -49,6 +50,7 @@ export type Database = {
         }
         Insert: {
           created_by: number
+          flat_rack_tiles?: Json
           id?: number
           players?: Json
           rack_tiles?: Json
@@ -59,6 +61,7 @@ export type Database = {
         }
         Update: {
           created_by?: number
+          flat_rack_tiles?: Json
           id?: number
           players?: Json
           rack_tiles?: Json

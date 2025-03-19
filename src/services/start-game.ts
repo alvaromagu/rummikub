@@ -2,6 +2,7 @@ import supabase from '../supabase/client'
 import { GameTile } from '../types/game'
 import { getGameTiles, INITAL_TILES_PER_PLAYER, MIN_PLAYERS, randomArrIndex } from '../utils/constants'
 import { getGame } from './get-game'
+import { initialTiles as initialFlatRackTiles } from '../stores/game'
 
 export async function startGame({
   gameId
@@ -37,7 +38,8 @@ export async function startGame({
       players: newGamePlayers,
       started: 'started',
       turn_id: firstTurnPlayer,
-      tiles_pool: initialTiles
+      tiles_pool: initialTiles,
+      flat_rack_tiles: [...initialFlatRackTiles] as []
     })
     .eq('id', id)
   if (error != null) {

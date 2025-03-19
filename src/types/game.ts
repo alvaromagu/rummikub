@@ -19,6 +19,7 @@ export type Game = {
   created_by: number
   turn_id: number | null
   winner_id: number | null
+  flat_rack_tiles: GameTile[]
 }
 
 export type GameStateEnum = 'not_started' | 'started' | 'finished'

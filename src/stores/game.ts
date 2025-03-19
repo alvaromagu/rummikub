@@ -18,7 +18,7 @@ interface GameStore {
 
 export const initialColumns = 12
 export const initialRows = 4
-const initialTiles: Array<RackTile | undefined> = Array.from(
+export const initialTiles: Array<RackTile | undefined> = Array.from(
   { length: initialColumns * initialRows },
 )
 
@@ -27,10 +27,11 @@ export const useGameStore = create<GameStore>()(
     game: null as unknown as Game,
     rack: [],
     flatRack: [...initialTiles],
-    setGame: (game) => { 
+    setGame: (game) => {
       set({ 
         game, 
-        rack: game.rack_tiles.map(tiles => tiles.map(tile => [...tile, undefined])) 
+        rack: game.rack_tiles.map(tiles => tiles.map(tile => [...tile, undefined])),
+        flatRack: game.flat_rack_tiles.map(tile => tile != null ? [...tile, undefined] : undefined)
       })
     },
     dropTile: ({
