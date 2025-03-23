@@ -42,7 +42,6 @@ export type Database = {
           flat_rack_tiles: Json
           id: number
           players: Json
-          rack_tiles: Json
           started: Database['public']['Enums']['game_state']
           tiles_pool: Json
           turn_id: number | null
@@ -53,7 +52,6 @@ export type Database = {
           flat_rack_tiles?: Json
           id?: number
           players?: Json
-          rack_tiles?: Json
           started?: Database['public']['Enums']['game_state']
           tiles_pool?: Json
           turn_id?: number | null
@@ -64,7 +62,6 @@ export type Database = {
           flat_rack_tiles?: Json
           id?: number
           players?: Json
-          rack_tiles?: Json
           started?: Database['public']['Enums']['game_state']
           tiles_pool?: Json
           turn_id?: number | null

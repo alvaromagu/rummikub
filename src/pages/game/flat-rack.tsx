@@ -75,10 +75,10 @@ function FlatRackTile({
       <div
         className={cn(
           'border border-transparent rounded w-8 h-10 font-bold flex justify-center items-center',
-          tile != null && `bg-gray-200 ${tileColorMap[tile[1]]}`,
+          tile != null && `bg-gray-200 ${tileColorMap[tile[1]]} cursor-pointer`,
           tile == null && isDragging && 'border-white',
         )}
-        draggable
+        draggable={tile != null}
         onDragStart={tile == null ? undefined : event => {
           event.dataTransfer.setData('text/plain', JSON.stringify(tile))
         }}
