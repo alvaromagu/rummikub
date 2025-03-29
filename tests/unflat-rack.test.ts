@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { unflatRack } from '../src/services/end-turn'
 import { RackTile } from '../src/stores/game'
+import { unflatRack } from '../src/utils/grid'
 
 // row type for copilot
 // export type Tile = [TileValue, 'red' | 'blue' | 'black' | 'yellow']
@@ -41,5 +41,33 @@ describe('Unflat rack', () => {
       [[6, 'blue', id6, 1]],
       [[7, 'black', id7, 1]]
     ])
+  })
+
+
+  test('Rack unflat takes in count columns and rows of rack, so if a tile is placed in last col in row and next row starts with a tile it takes them as two different subracks', () => {
+    const id1 = crypto.randomUUID()
+    const id2 = crypto.randomUUID()
+    const rackTiles: Array<RackTile | undefined> = [
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      [1, 'red', id1, 1],
+      [2, 'blue', id2, 1],
+      undefined,
+      undefined
+    ]
+    const result = unflatRack({ rackTiles })
+    expect(result).toEqual([
+      [[1, 'red', id1, 1]],
+      [[2, 'blue', id2, 1]]
+    ])                
   })
 })

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { Game, GameTile } from '../types/game'
+import { increaseRackSize, initialTiles, isRackCompact } from '../utils/grid'
 
 export type RackTile = [...GameTile, number | undefined]
 
@@ -11,12 +12,6 @@ interface GameStore {
   resetFlatRack: (params: { playerId: number }) => void
   sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => void
 }
-
-export const initialColumns = 12
-export const initialRows = 4
-export const initialTiles: Array<RackTile | undefined> = Array.from(
-  { length: initialColumns * initialRows },
-)
 
 export const useGameStore = create<GameStore>()(
   (set, get) => ({
@@ -65,7 +60,7 @@ export const useGameStore = create<GameStore>()(
         return p
       })
       set({
-        flatRack: newFlatRack,
+        flatRack: isRackCompact({ rackTiles: newFlatRack}) ? increaseRackSize({ flatRack: newFlatRack }) : newFlatRack,
         game: {
           ...game,
           players: newPlayers

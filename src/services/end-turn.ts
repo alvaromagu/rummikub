@@ -3,6 +3,7 @@ import supabase from '../supabase/client'
 import { ServiceError } from '../types/error'
 import { GameTile } from '../types/game'
 import { JOKER } from '../utils/constants'
+import { unflatRack } from '../utils/grid'
 import { getGame } from './get-game'
 
 export async function endTurn({
@@ -90,21 +91,6 @@ export function validateFlatRack ({
     }
   }
   return { error: false }
-}
-
-export function unflatRack ({
-  rackTiles
-}: {
-  rackTiles: Array<RackTile | undefined>
-}): RackTile[][] {
-  return rackTiles.reduce((rows, tile) => {
-    if (tile == null) {
-      rows.push([])
-      return rows
-    }
-    rows[rows.length - 1].push(tile)
-    return rows
-  }, [[]] as RackTile[][]).filter(row => row.length > 0)
 }
 
 export function validateRow ({

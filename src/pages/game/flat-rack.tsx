@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import { Joker } from '../../components/joker'
-import { initialColumns, initialRows, RackTile, useGameStore } from '../../stores/game'
+import { RackTile, useGameStore } from '../../stores/game'
 import { useSessionStore } from '../../stores/session'
 import { cn } from '../../utils/cn'
 import { JOKER } from '../../utils/constants'
+import { getGridDimensions } from '../../utils/grid'
 import { tileColorMap } from './player-section/constants'
 
 export function FlatRack() {
   const playerId = useSessionStore(store => store.player!.id)
+  const flatRackLength = useGameStore(store => store.flatRack.length)
   const tiles = useGameStore(store => store.flatRack)
   const dropTile = useGameStore(store => store.dropFlatTile)
+  const { columns, rows } = getGridDimensions({ length: flatRackLength })
 
-  const gridCols = `repeat(${initialColumns}, 1fr)`
-  const gridRows = `repeat(${initialRows}, 1fr)`
+  const gridCols = `repeat(${columns}, 1fr)`
+  const gridRows = `repeat(${rows}, 1fr)`
 
   return (
     <div
@@ -24,11 +27,11 @@ export function FlatRack() {
       }}
     >
       {tiles.map((tile, index) => (
-        <FlatRackTile 
-          key={index} 
-          tile={tile} 
-          index={index} 
-          dropTile={({ tile, index}) => {
+        <FlatRackTile
+          key={index}
+          tile={tile}
+          index={index}
+          dropTile={({ tile, index }) => {
             dropTile({
               tile,
               index,

@@ -2,7 +2,7 @@ import supabase from '../supabase/client'
 import { GameTile } from '../types/game'
 import { getGameTiles, INITAL_TILES_PER_PLAYER, MIN_PLAYERS, randomArrIndex } from '../utils/constants'
 import { getGame } from './get-game'
-import { initialTiles as initialFlatRackTiles } from '../stores/game'
+import { initialTiles as initialFlatRackTiles } from '../utils/grid'
 
 export async function startGame({
   gameId
