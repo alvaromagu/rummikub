@@ -3,16 +3,17 @@ import supabase from '../supabase/client'
 import { ServiceError } from '../types/error'
 import { GameTile } from '../types/game'
 import { JOKER } from '../utils/constants'
+import { unflatRack } from '../utils/grid'
 import { getGame } from './get-game'
 
 export async function endTurn({
   gameId,
   playerId,
-  newRack
+  newFlatRack
 }: {
   gameId: number
   playerId: number
-  newRack: RackTile[][]
+  newFlatRack: Array<RackTile | undefined>
 }): Promise<ServiceError> {
   const game = await getGame({ id: gameId })
   if (game == null) {
@@ -31,21 +32,21 @@ export async function endTurn({
   }
   const player = players[playerIndex]
   const playerTiles = player.tiles
-  const rackValidation = validateRack({ oldRack: game.rack_tiles, newRack, playerTiles })
-  if (rackValidation.error) {
-    return rackValidation
+  const flatRackValidation = validateFlatRack({ oldRackTiles: game.flat_rack_tiles, newRackTiles: newFlatRack, playerTiles })
+  if (flatRackValidation.error) {
+    return flatRackValidation
   }
-  const rackTiles: GameTile[][] = newRack.map(row => row.map(tile => tile.slice(0, 3) as GameTile))
-  const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => rackTiles.flat().find(t => t[2] === tileId) == null)
+  const flatRackTiles: Array<GameTile | undefined> = newFlatRack.map(tile => tile?.slice(0, 3) as unknown as GameTile | undefined)
+  const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => flatRackTiles.find(t => t != null && t[2] === tileId) == null)
   const hasWon = newPlayerTiles.length === 0
   const { error } = await supabase
     .from('games')
     .update({
-      rack_tiles: rackTiles,
       players: players.map(p => p.id === playerId ? { ...p, tiles: newPlayerTiles } : p) as [],
       turn_id: players[(playerIndex + 1) % players.length].id,
       winner_id: hasWon ? playerId : null,
-      started: hasWon ? 'finished' : 'started'
+      started: hasWon ? 'finished' : 'started',
+      flat_rack_tiles: flatRackTiles as []
     })
     .eq('id', id)
   if (error != null) {
@@ -54,18 +55,19 @@ export async function endTurn({
   return { error: false }
 }
 
-function validateRack ({
-  oldRack,
-  newRack,
+export function validateFlatRack ({
+  oldRackTiles,
+  newRackTiles,
   playerTiles
 }: {
-  oldRack: GameTile[][]
-  newRack: RackTile[][]
+  oldRackTiles: Array<GameTile | undefined>
+  newRackTiles: Array<RackTile | undefined>
   playerTiles: GameTile[]
 }): ServiceError {
-  const oldRackTiles = oldRack.flat()
-  const newRackTiles = newRack.flat()
-  const placedTiles = newRackTiles.filter(([,,, playerId]) => playerId != null)
+  const newRackTilesWithoutNulls = newRackTiles.filter(t => t != null)
+  const oldRackTilesWithoutNulls = oldRackTiles.filter(t => t != null)
+
+  const placedTiles = newRackTilesWithoutNulls.filter(([,,, playerId]) => playerId != null)
   if (placedTiles.length === 0) {
     return { error: true, message: 'No tiles placed' }
   }
@@ -74,14 +76,15 @@ function validateRack ({
     return { error: true, message: 'Placed tiles not of player' }
   }
   // just check length of oldRack is same of newRack - placedTiles
-  const oldRackTilesLength = oldRackTiles.length
-  const newRackTilesLength = newRackTiles.length
+  const oldRackTilesLength = oldRackTilesWithoutNulls.length
+  const newRackTilesLength = newRackTilesWithoutNulls.length
   const placedTilesLength = placedTiles.length
   if (oldRackTilesLength !== newRackTilesLength - placedTilesLength) {
     return { error: true, message: 'Invalid rack length' }
   }
   // check subracks are valid
-  for (const row of newRack) {
+  const newRackRows = unflatRack({ rackTiles: newRackTiles })
+  for (const row of newRackRows) {
     const result = validateRow({row})
     if (result.error) {
       return result

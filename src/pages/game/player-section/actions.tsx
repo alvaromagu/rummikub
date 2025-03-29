@@ -6,8 +6,8 @@ import { useGameStore } from '../../../stores/game'
 import { useSessionStore } from '../../../stores/session'
 
 export function Actions() {
-  const rack = useGameStore(store => store.rack)
-  const resetRack = useGameStore(store => store.resetRack)
+  const flatRack = useGameStore(store => store.flatRack)
+  const resetFlatRack = useGameStore(store => store.resetFlatRack)
   const gameId = useGameStore(store => store.game.id)
   const playerId = useSessionStore(store => store.player!.id)
   const turnId = useGameStore(store => store.game.turn_id)
@@ -23,15 +23,15 @@ export function Actions() {
     return null
   }
 
-  const hasModifiedRack = rack.some(tiles => tiles.some(tile => tile[3] === playerId))
+  const hasModifiedFlatRack = flatRack.some(tile => tile != null && tile[3] === playerId)
 
-  if (hasModifiedRack) {
+  if (hasModifiedFlatRack) {
     return (
       <div className='flex justify-center gap-2'>
         <Button
           className='flex font-semibold'
           onClick={() => {
-            resetRack({ playerId })
+            resetFlatRack({ playerId })
           }}
         >
           Reset Rack
@@ -42,7 +42,7 @@ export function Actions() {
             const endTurnResult = await endTurn({
               gameId,
               playerId,
-              newRack: rack
+              newFlatRack: flatRack
             })
             if (endTurnResult.error) {
               console.error(endTurnResult.message)

@@ -39,9 +39,9 @@ export type Database = {
       games: {
         Row: {
           created_by: number
+          flat_rack_tiles: Json
           id: number
           players: Json
-          rack_tiles: Json
           started: Database['public']['Enums']['game_state']
           tiles_pool: Json
           turn_id: number | null
@@ -49,9 +49,9 @@ export type Database = {
         }
         Insert: {
           created_by: number
+          flat_rack_tiles?: Json
           id?: number
           players?: Json
-          rack_tiles?: Json
           started?: Database['public']['Enums']['game_state']
           tiles_pool?: Json
           turn_id?: number | null
@@ -59,9 +59,9 @@ export type Database = {
         }
         Update: {
           created_by?: number
+          flat_rack_tiles?: Json
           id?: number
           players?: Json
-          rack_tiles?: Json
           started?: Database['public']['Enums']['game_state']
           tiles_pool?: Json
           turn_id?: number | null

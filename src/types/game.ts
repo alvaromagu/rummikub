@@ -13,12 +13,12 @@ export interface GamePlayer {
 export type Game = {
   id: number
   players: GamePlayer[]
-  rack_tiles: GameTile[][]
   tiles_pool: Tile[]
   started: GameStateEnum
   created_by: number
   turn_id: number | null
   winner_id: number | null
+  flat_rack_tiles: GameTile[]
 }
 
 export type GameStateEnum = 'not_started' | 'started' | 'finished'
