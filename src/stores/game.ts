@@ -80,7 +80,9 @@ export const useGameStore = create<GameStore>()(
       }
       const flatRackPlayerTiles = flatRack.filter(t => t != null && t[3] === playerId) as RackTile[]
       const newPlayerTiles = [...playerTiles, ...(flatRackPlayerTiles.map(t => [t[0], t[1], t[2]]) as GameTile[])]
-      const newFlatRack = [...initialTiles]
+      const newFlatRack = flatRack.map(t => {
+        return t == null || t[3] !== playerId ? t : undefined
+      })
       const newPlayers = game.players.map(p => {
         if (p.id === playerId) {
           return {
