@@ -77,7 +77,7 @@ function FlatRackTile({
     >
       <div
         className={cn(
-          'border border-transparent rounded font-bold flex justify-center items-center aspect-[3/4] max-w-8',
+          'border border-transparent rounded font-bold flex justify-center items-center aspect-[3/4]',
           tile != null && `bg-gray-200 ${tileColorMap[tile[1]]} cursor-pointer`,
           tile == null && isDragging && 'border-white',
         )}
