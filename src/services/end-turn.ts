@@ -2,7 +2,7 @@ import { RackTile } from '../stores/game'
 import supabase from '../supabase/client'
 import { ServiceError } from '../types/error'
 import { GameTile } from '../types/game'
-import { JOKER } from '../utils/constants'
+import { FIRST_MOVE_SCORE, JOKER, JOKER_FIXED_VALUE } from '../utils/constants'
 import { unflatRack } from '../utils/grid'
 import { getGame } from './get-game'
 
@@ -37,12 +37,22 @@ export async function endTurn({
     return flatRackValidation
   }
   const flatRackTiles: Array<GameTile | undefined> = newFlatRack.map(tile => tile?.slice(0, 3) as unknown as GameTile | undefined)
-  const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => flatRackTiles.find(t => t != null && t[2] === tileId) == null)
+  let settedTilesScore = 0
+  const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => {
+    const tile = flatRackTiles.find(t => t != null && t[2] === tileId)
+    if (tile != null) {
+      settedTilesScore += tile[0] === JOKER ? JOKER_FIXED_VALUE : tile[0]
+    }
+    return tile == null
+  })
+  if (!player.hasMadeFirstMove && settedTilesScore < FIRST_MOVE_SCORE) {
+    return { error: true, message: 'You need to set at least 30 points' }
+  }
   const hasWon = newPlayerTiles.length === 0
   const { error } = await supabase
     .from('games')
     .update({
-      players: players.map(p => p.id === playerId ? { ...p, tiles: newPlayerTiles } : p) as [],
+      players: players.map(p => p.id === playerId ? { ...p, tiles: newPlayerTiles, hasMadeFirstMove: true } : p) as [],
       turn_id: players[(playerIndex + 1) % players.length].id,
       winner_id: hasWon ? playerId : null,
       started: hasWon ? 'finished' : 'started',
@@ -104,7 +114,7 @@ export function validateRow ({
   const rowWithoutJokers = row.filter(([value]) => value !== JOKER)
   const isSameNumberRow = rowWithoutJokers.every(([value]) => value === row[0][0])
   if (isSameNumberRow) {
-    const colors = new Set([...row.map(([,color]) => color)])
+    const colors = new Set([...rowWithoutJokers.map(([,color]) => color)]) // TODO: add test for this
     if (colors.size !== rowWithoutJokers.length) {
       return { error: true, message: 'Can\'t repeat colors' }
     }

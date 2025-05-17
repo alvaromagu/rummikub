@@ -11,7 +11,8 @@ export async function createGame({
     {
       id: player.id,
       name: player.name,
-      tiles: []
+      tiles: [],
+      hasMadeFirstMove: false
     }
   ]
   return await supabase

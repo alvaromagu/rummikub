@@ -29,7 +29,8 @@ export async function joinGame({
   const newPlayers: GamePlayer[] = [...players, {
     id: player.id,
     name: player.name,
-    tiles: []
+    tiles: [],
+    hasMadeFirstMove: false
   }]
   const { error } = await supabase
     .from('games')

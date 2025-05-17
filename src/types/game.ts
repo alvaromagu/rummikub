@@ -8,6 +8,7 @@ export interface GamePlayer {
   id: number
   name: string
   tiles: GameTile[]
+  hasMadeFirstMove: boolean
 }
 
 export type Game = {
