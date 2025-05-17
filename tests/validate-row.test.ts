@@ -29,8 +29,13 @@ describe('Validate row with all tiles of same number', () => {
     const result = validateRow({row})
     expect(result.error).toBe(true)
   })
-  test('Returns no error if colors are not repeated', () => {
+  test('Returns no error if colors are not repeated with 3 tiles', () => {
     const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [1, 'blue', crypto.randomUUID(), undefined], [1, 'black', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
+  })
+  test('Returns no error if colors are not repeated with 4 tiles', () => {
+    const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [1, 'blue', crypto.randomUUID(), undefined], [1, 'black', crypto.randomUUID(), undefined], [1, 'yellow', crypto.randomUUID(), undefined]]
     const result = validateRow({row})
     expect(result.error).toBe(false)
   })
@@ -39,10 +44,20 @@ describe('Validate row with all tiles of same number', () => {
     const result = validateRow({row})
     expect(result.error).toBe(false)
   })
-  test('Returns error with two jokers in the row', () => {
+  test('Returns no error with two jokers in the row', () => {
     const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [JOKER, 'red', crypto.randomUUID(), undefined], [JOKER, 'yellow', crypto.randomUUID(), undefined]]
     const result = validateRow({row})
-    expect(result.error).toBe(true)
+    expect(result.error).toBe(false)
+  })
+  test('Returns no error with one joker and 4 tiles in the row', () => {
+    const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [1, 'blue', crypto.randomUUID(), undefined], [1, 'black', crypto.randomUUID(), undefined], [JOKER, 'red', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
+  })
+  test('Returns no error with two jokers and 4 tiles in the row', () => {
+    const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [1, 'blue', crypto.randomUUID(), undefined], [JOKER, 'red', crypto.randomUUID(), undefined], [JOKER, 'yellow', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
   })
 })
 

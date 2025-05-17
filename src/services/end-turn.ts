@@ -114,7 +114,7 @@ export function validateRow ({
   const rowWithoutJokers = row.filter(([value]) => value !== JOKER)
   const isSameNumberRow = rowWithoutJokers.every(([value]) => value === row[0][0])
   if (isSameNumberRow) {
-    const colors = new Set([...rowWithoutJokers.map(([,color]) => color)]) // TODO: add test for this
+    const colors = new Set([...rowWithoutJokers.map(([,color]) => color)])
     if (colors.size !== rowWithoutJokers.length) {
       return { error: true, message: 'Can\'t repeat colors' }
     }
