@@ -4,6 +4,7 @@ export const UPDATE_CHANNEL = 'game-updated'
 export const MAX_PLAYERS = 4
 export const MIN_PLAYERS = 2
 export const JOKER = 69
+export const JOKER_FIXED_VALUE = 25
 export const TILES_PER_COLOR = 13
 export const INITAL_TILES_PER_PLAYER = 14
 

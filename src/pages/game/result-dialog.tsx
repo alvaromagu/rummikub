@@ -4,6 +4,7 @@ import { useGameStore } from '../../stores/game'
 import { useSessionStore } from '../../stores/session'
 import { cn } from '../../utils/cn'
 import Confetti from 'react-confetti'
+import { JOKER, JOKER_FIXED_VALUE } from '../../utils/constants'
 
 export function ResultDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -30,7 +31,12 @@ export function ResultDialog() {
 
   // TODO: CHECK DRAW
 
-  const playersScore = players.map(player => ({ id: player.id, score: player.tiles.reduce((acc, [value]) => acc + value, 0) })).sort((a, b) => a.score - b.score)
+  const playersScore = players
+    .map(player => ({ 
+      id: player.id, 
+      score: player.tiles.reduce((acc, [value]) => acc + (value === JOKER ? JOKER_FIXED_VALUE : value), 0) 
+    }))
+    .sort((a, b) => a.score - b.score)
 
   return (
     <dialog ref={dialogRef} className='bg-transparent backdrop:bg-black backdrop:opacity-90 max-w-none max-h-none w-full h-dvh open:grid place-content-center'>
