@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { Button } from '../../components/button'
 import { startGame } from '../../services/start-game'
 import { useGameStore } from '../../stores/game'
@@ -16,7 +17,10 @@ export function StartButton() {
 
   return (
     <Button disabled={playersLength < 2} onClick={async () => {
-      await startGame({ gameId })
+      const res = await startGame({ gameId })
+      if (res.error) {
+        toast.error(res.message)
+      }
     }}>
       Start Game
     </Button>

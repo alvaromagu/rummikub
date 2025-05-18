@@ -6,6 +6,8 @@ import { cn } from '../../utils/cn'
 import { JOKER } from '../../utils/constants'
 import { getGridDimensions } from '../../utils/grid'
 import { tileColorMap } from './player-section/constants'
+import { ServiceError } from '../../types/error'
+import toast from 'react-hot-toast'
 
 export function FlatRack() {
   const playerId = useSessionStore(store => store.player!.id)
@@ -32,7 +34,7 @@ export function FlatRack() {
           tile={tile}
           index={index}
           dropTile={({ tile, index }) => {
-            dropTile({
+            return dropTile({
               tile,
               index,
               playerId
@@ -50,7 +52,7 @@ function FlatRackTile({
 }: {
   tile: RackTile | undefined
   index: number
-  dropTile: (props: { tile: RackTile; index: number }) => void
+  dropTile: (props: { tile: RackTile; index: number }) => ServiceError
 }) {
   const [isDragging, setIsDragging] = useState(false)
 
@@ -61,7 +63,11 @@ function FlatRackTile({
         event.preventDefault()
         event.stopPropagation()
         const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as RackTile
-        dropTile({ tile, index })
+        const res = dropTile({ tile, index })
+        if (res.error) {
+          toast.error(res.message)
+          return
+        }
         setIsDragging(false)
       }}
       onDragOver={event => {

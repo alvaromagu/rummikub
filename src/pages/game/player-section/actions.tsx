@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast'
 import { Button } from '../../../components/button'
 import { Card } from '../../../components/card'
 import { drawTile } from '../../../services/draw-tile'
@@ -31,7 +32,10 @@ export function Actions() {
         <Button
           className='flex font-semibold'
           onClick={() => {
-            resetFlatRack({ playerId })
+            const res = resetFlatRack({ playerId })
+            if (res.error) {
+              toast.error(res.message)
+            }
           }}
         >
           Reset Rack
@@ -45,7 +49,7 @@ export function Actions() {
               newFlatRack: flatRack
             })
             if (endTurnResult.error) {
-              console.error(endTurnResult.message)
+              toast.error(endTurnResult.message)
             }
           }}
         >
@@ -61,7 +65,11 @@ export function Actions() {
         className='flex justify-center items-center gap-2 font-semibold'
         disabled={!isPlayerTurn}
         onClick={async () => {
-          await drawTile({ gameId, playerId })
+          const res = await drawTile({ gameId, playerId })
+          if (res.error) {
+            toast.error(res.message)
+            return
+          }
         }}
       >
         Draw Tile

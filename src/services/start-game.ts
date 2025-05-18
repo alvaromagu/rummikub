@@ -3,22 +3,23 @@ import { GameTile } from '../types/game'
 import { getGameTiles, INITAL_TILES_PER_PLAYER, MIN_PLAYERS, randomArrIndex } from '../utils/constants'
 import { getGame } from './get-game'
 import { initialTiles as initialFlatRackTiles } from '../utils/grid'
+import { ServiceError } from '../types/error'
 
 export async function startGame({
   gameId
 }: {
   gameId: number
-}): Promise<{ error: boolean; }> {
+}): Promise<ServiceError> {
   const game = await getGame({ id: gameId })
   if (game == null) {
-    return { error: true }
+    return { error: true, message: 'Game not found' }
   }
   const { id, players, started } = game
   if (started !== 'not_started') {
-    return { error: true }
+    return { error: true, message: 'Game already started' }
   }
   if (players.length < MIN_PLAYERS) {
-    return { error: true }
+    return { error: true, message: 'Not enough players' }
   }
   const initialTiles = getGameTiles()
   const newGamePlayers = players.map(p => {
@@ -43,7 +44,7 @@ export async function startGame({
     })
     .eq('id', id)
   if (error != null) {
-    return { error: true }
+    return { error: true, message: error.message }
   }
   return { error: false }
 }

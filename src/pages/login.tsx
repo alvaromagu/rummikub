@@ -4,6 +4,7 @@ import { H1 } from '../components/h1'
 import { Input } from '../components/input'
 import { loginPlayer } from '../services/login-player'
 import { useSessionStore } from '../stores/session'
+import toast from 'react-hot-toast'
 
 type LoginForm = {
   name: string
@@ -25,7 +26,7 @@ export default function Login() {
         }
         const { data, error } = await loginPlayer({ name })
         if (error != null) {
-          console.error(error)
+          toast.error(error.message)
           return
         }
         const { id } = data

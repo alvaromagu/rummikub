@@ -10,10 +10,10 @@ export async function joinGame({
 }: {
   player: Player
   gameId: number
-}): Promise<{ error: false; id: number } | { error: true; id?: undefined }> {
+}): Promise<{ error: false; id: number } | { error: true; id?: undefined, message: string }> {
   const game = await getGame({ id: gameId })
   if (game == null) {
-    return { error: true }
+    return { error: true, message: 'Game not found' }
   }
   const { id, players, started } = game
   const playerAlreadyInGame = players.some(p => p.id === player.id)
@@ -21,10 +21,10 @@ export async function joinGame({
     return { error: false, id }
   }
   if (started !== 'not_started') {
-    return { error: true }
+    return { error: true, message: 'Game already started' }
   }
   if (players.length >= MAX_PLAYERS) {
-    return { error: true }
+    return { error: true, message: 'Game is full' }
   }
   const newPlayers: GamePlayer[] = [...players, {
     id: player.id,
@@ -39,7 +39,7 @@ export async function joinGame({
     })
     .eq('id', id)
   if (error != null) {
-    return { error: true }
+    return { error: true, message: error.message }
   }
   return { error: false, id }
 }

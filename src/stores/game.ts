@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { Game, GameTile } from '../types/game'
 import { increaseRackSize, initialTiles, isRackCompact } from '../utils/grid'
+import { ServiceError } from '../types/error'
 
 export type RackTile = [...GameTile, number | undefined]
 
@@ -8,9 +9,9 @@ interface GameStore {
   game: Game
   flatRack: Array<RackTile | undefined>
   setGame: (game: Game) => void
-  dropFlatTile: (params: { tile: RackTile; playerId: number; index: number }) => void
-  resetFlatRack: (params: { playerId: number }) => void
-  sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => void
+  dropFlatTile: (params: { tile: RackTile; playerId: number; index: number }) => ServiceError
+  resetFlatRack: (params: { playerId: number }) => ServiceError
+  sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => ServiceError
 }
 
 export const useGameStore = create<GameStore>()(
@@ -26,24 +27,24 @@ export const useGameStore = create<GameStore>()(
     },
     dropFlatTile: ({
       tile, playerId, index
-    }) => {
+    }): ServiceError => {
       const { game, flatRack } = get()
       if (game == null) {
-        return
+        return { error: true, message: 'Game not found' }
       }
       if (game.turn_id !== playerId) {
-        return
+        return { error: true, message: 'Not your turn' }
       }
       const playerTiles = game.players.find(p => p.id === playerId)?.tiles
       const flatRackIndex = flatRack.findIndex(t => t?.[2] === tile[2])
       const isInFlatRack = flatRackIndex !== -1
       if (playerTiles == null || (!playerTiles.some(t => t[2] === tile[2]) && !isInFlatRack)) {
         console.error('Cant move selected tile')
-        return
+        return { error: true, message: 'Cant move selected tile' }
       }
       if (flatRack[index] != null) {
         console.error('Cannot drop tile', tile)
-        return
+        return { error: true, message: 'Cannot drop tile' }
       }
       const newFlatRack = [...flatRack]
       if (isInFlatRack) {
@@ -66,17 +67,18 @@ export const useGameStore = create<GameStore>()(
           players: newPlayers
         }
       })
+      return { error: false }
     },
     resetFlatRack: ({
       playerId
-    }) => {
+    }): ServiceError => {
       const { game, flatRack } = get()
       if (game == null) {
-        return
+        return { error: true, message: 'Game not found' }
       }
       const playerTiles = game.players.find(p => p.id === playerId)?.tiles
       if (playerTiles == null) {
-        return
+        return { error: true, message: 'Player not found' }
       }
       const flatRackPlayerTiles = flatRack.filter(t => t != null && t[3] === playerId) as RackTile[]
       const newPlayerTiles = [...playerTiles, ...(flatRackPlayerTiles.map(t => [t[0], t[1], t[2]]) as GameTile[])]
@@ -96,18 +98,19 @@ export const useGameStore = create<GameStore>()(
           players: newPlayers
         }
       })
+      return { error: false }
     },
     sortTiles: ({
       playerId,
       tileSorter
-    }) => {
+    }): ServiceError => {
       const { game } = get()
       if (game == null) {
-        return
+        return { error: true, message: 'Game not found' }
       }
       const playerTiles = game.players.find(p => p.id === playerId)?.tiles
       if (playerTiles == null) {
-        return
+        return { error: true, message: 'Player not found' }
       }
       const sortedTiles = [...playerTiles].sort(tileSorter)
       const newPlayers = game.players.map(p => {
@@ -125,6 +128,7 @@ export const useGameStore = create<GameStore>()(
           players: newPlayers
         }
       })
+      return { error: false }
     }
   }),
 )

@@ -9,6 +9,7 @@ import { joinGame } from '../services/join-game'
 import { useEffect, useState } from 'react'
 import { getPlayerGames } from '../services/player-games'
 import { Link } from '../components/link'
+import toast from 'react-hot-toast'
 
 type JoinGameForm = {
   gameCode: string
@@ -53,7 +54,7 @@ export default function Home() {
           player
         })
         if (error != null) {
-          console.error(error)
+          toast.error(error.message)
           return
         }
         const { id } = data
@@ -68,14 +69,15 @@ export default function Home() {
         if (isNaN(gameCode)) {
           return
         }
-        const { error, id } = await joinGame({
+        const res = await joinGame({
           player,
           gameId: gameCode
         })
-        if (error) {
+        if (res.error) {
+          toast.error(res.message)
           return
         }
-        navigate(`/game/${id}`)
+        navigate(`/game/${res.id}`)
       }}>
         <Input placeholder='Game code' name='gameCode' className='pr-21' type='number' required />
         <Button type='submit' className='absolute inset-y-0 right-2 p-0 bg-transparent hover:bg-transparent hover:text-cyan-600'>Join game</Button>
