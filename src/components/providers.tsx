@@ -15,6 +15,9 @@ export function Providers({
             background: '#333',
             color: '#fff',
           },
+          error: {
+            duration: 1000
+          }
         }}
       />
       {children}

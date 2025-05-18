@@ -21,7 +21,7 @@ export function FlatRack() {
 
   return (
     <div
-      className='border rounded p-2 gap-0.5'
+      className='flex-1 max-h-64 border rounded p-2 gap-0.5'
       style={{
         display: 'grid',
         gridTemplateColumns: gridCols,
@@ -83,7 +83,7 @@ function FlatRackTile({
     >
       <div
         className={cn(
-          'border border-transparent rounded font-bold flex justify-center items-center aspect-[3/4]',
+          'h-full border border-transparent rounded font-bold flex justify-center items-center',
           tile != null && `bg-gray-200 ${tileColorMap[tile[1]]} cursor-pointer`,
           tile == null && isDragging && 'border-white',
         )}
