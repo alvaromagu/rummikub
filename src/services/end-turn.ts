@@ -112,7 +112,7 @@ export function validateRow ({
     return { error: true, message: 'Invalid row length' }
   }
   const rowWithoutJokers = row.filter(([value]) => value !== JOKER)
-  const isSameNumberRow = rowWithoutJokers.every(([value]) => value === row[0][0])
+  const isSameNumberRow = rowWithoutJokers.every(([value]) => value === rowWithoutJokers[0][0])
   if (isSameNumberRow) {
     const colors = new Set([...rowWithoutJokers.map(([,color]) => color)])
     if (colors.size !== rowWithoutJokers.length) {
