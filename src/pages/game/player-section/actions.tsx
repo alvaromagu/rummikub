@@ -13,8 +13,9 @@ export function Actions() {
   const playerId = useSessionStore(store => store.player!.id)
   const turnId = useGameStore(store => store.game.turn_id)
   const tilesPool = useGameStore(store => store.game.tiles_pool.length)
+  const playerTiles = useGameStore(store => store.game.players.find(player => player.id === playerId)?.tiles)
 
-  if (turnId == null) {
+  if (turnId == null || playerTiles == null) {
     return null
   }
 
@@ -65,7 +66,7 @@ export function Actions() {
         className='flex justify-center items-center gap-2 font-semibold'
         disabled={!isPlayerTurn}
         onClick={async () => {
-          const res = await drawTile({ gameId, playerId })
+          const res = await drawTile({ gameId, playerId, playerTilesState: playerTiles })
           if (res.error) {
             toast.error(res.message)
             return

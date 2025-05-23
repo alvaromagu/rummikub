@@ -1,14 +1,17 @@
 import supabase from '../supabase/client'
 import { ServiceError } from '../types/error'
+import { GameTile } from '../types/game'
 import { randomArrIndex } from '../utils/constants'
 import { getGame } from './get-game'
 
 export async function drawTile({
   gameId,
-  playerId
+  playerId,
+  playerTilesState
 }: {
   gameId: number
   playerId: number
+  playerTilesState: GameTile[]
 }): Promise<ServiceError> {
   const game = await getGame({ id: gameId })
   if (game == null) {
@@ -26,8 +29,15 @@ export async function drawTile({
     return { error: true, message: 'Player not found' }
   }
   const player = players[playerIndex]
+  const playerTilesSet = new Set([
+    ...playerTilesState.map(([,, id]) => id), 
+    ...player.tiles.map(([,, id]) => id)
+  ])
+  if (playerTilesSet.size !== player.tiles.length) {
+    return { error: true, message: 'Error, can not modify player tiles' }
+  }
   const [newTile] = tiles_pool.splice(randomArrIndex(tiles_pool.length), 1)
-  player.tiles = [...player.tiles, [...newTile, crypto.randomUUID()]]
+  player.tiles = [...playerTilesState, [...newTile, crypto.randomUUID()]]
   const nextTurnPlayer = players[(playerIndex + 1) % players.length].id
   const {error} = await supabase
     .from('games')
