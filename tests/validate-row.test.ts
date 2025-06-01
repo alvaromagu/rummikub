@@ -127,5 +127,25 @@ describe('Validate row with all tiles of same color', () => {
     const result = validateRow({row})
     expect(result.error).toBe(false)
   })
+  test('Returns no error with one joker of different color at the start of the row', () => {
+    const row: RackTile[] = [[JOKER, 'yellow', crypto.randomUUID(), undefined], [1, 'red', crypto.randomUUID(), undefined], [2, 'red', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
+  })
+  test('Returns no error with one joker of different color at the end of the row', () => {
+    const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [2, 'red', crypto.randomUUID(), undefined], [JOKER, 'blue', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
+  })
+  test('Returns no error with two jokers of different color at the start of the row', () => {
+    const row: RackTile[] = [[JOKER, 'blue', crypto.randomUUID(), undefined], [JOKER, 'yellow', crypto.randomUUID(), undefined], [1, 'red', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
+  })
+  test('Returns no error with two jokers of different color at the end of the row', () => {
+    const row: RackTile[] = [[1, 'red', crypto.randomUUID(), undefined], [2, 'red', crypto.randomUUID(), undefined], [JOKER, 'blue', crypto.randomUUID(), undefined], [JOKER, 'yellow', crypto.randomUUID(), undefined]]
+    const result = validateRow({row})
+    expect(result.error).toBe(false)
+  })
 })
 

@@ -134,7 +134,7 @@ export function validateRow({
   if (rowWithoutJokers.length === 1) {
     return { error: false }
   }
-  const allHaveSameColor = rowWithoutJokers.every(([, color]) => color === row[0][1])
+  const allHaveSameColor = rowWithoutJokers.every(([, color]) => color === rowWithoutJokers[0][1])
   if (!allHaveSameColor) {
     return { error: true, message: 'Colors don\'t match' }
   }
