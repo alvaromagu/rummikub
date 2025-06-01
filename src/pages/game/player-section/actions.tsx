@@ -9,6 +9,7 @@ import { useSessionStore } from '../../../stores/session'
 export function Actions() {
   const flatRack = useGameStore(store => store.flatRack)
   const resetFlatRack = useGameStore(store => store.resetFlatRack)
+  const stateDrawTile = useGameStore(store => store.stateDrawTile)
   const gameId = useGameStore(store => store.game.id)
   const playerId = useSessionStore(store => store.player!.id)
   const turnId = useGameStore(store => store.game.turn_id)
@@ -72,6 +73,7 @@ export function Actions() {
             toast.error(res.message)
             return
           }
+          stateDrawTile({ playerId, tile: res.newPlayerTile })
         }}
       >
         Draw Tile

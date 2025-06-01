@@ -8,10 +8,11 @@ export type RackTile = [...GameTile, number | undefined]
 interface GameStore {
   game: Game
   flatRack: Array<RackTile | undefined>
-  setGame: (game: Game) => void
+  setGame: (params: { game: Game, playerId: number | undefined }) => void
   dropFlatTile: (params: { tile: RackTile; playerId: number; index: number }) => ServiceError
   resetFlatRack: (params: { playerId: number }) => ServiceError
   sortTiles: (params: { playerId: number, tileSorter: GameTileSorter }) => ServiceError
+  stateDrawTile: (params: { playerId: number, tile: GameTile }) => void
 }
 
 export const useGameStore = create<GameStore>()(
@@ -19,9 +20,27 @@ export const useGameStore = create<GameStore>()(
     game: null as unknown as Game,
     rack: [],
     flatRack: [...initialTiles],
-    setGame: (game) => {
-      set({ 
-        game, 
+    setGame: ({ game, playerId }) => {
+      if (game == null) {
+        return game
+      }
+      const prevState = get()
+      set({
+        game: prevState.game == null ? game : {
+          ...game,
+          players: game.players.map(player => {
+            if (player.id === playerId) {
+              const statePlayer = prevState.game.players.find(p => p.id === playerId)
+              if (statePlayer != null) {
+                return {
+                  ...player,
+                  tiles: statePlayer.tiles
+                }
+              }
+            }
+            return player
+          })
+        },
         flatRack: game.flat_rack_tiles.map(tile => tile != null ? [...tile, undefined] : undefined)
       })
     },
@@ -61,7 +80,7 @@ export const useGameStore = create<GameStore>()(
         return p
       })
       set({
-        flatRack: isRackCompact({ rackTiles: newFlatRack}) ? increaseRackSize({ flatRack: newFlatRack }) : newFlatRack,
+        flatRack: isRackCompact({ rackTiles: newFlatRack }) ? increaseRackSize({ flatRack: newFlatRack }) : newFlatRack,
         game: {
           ...game,
           players: newPlayers
@@ -129,16 +148,42 @@ export const useGameStore = create<GameStore>()(
         }
       })
       return { error: false }
+    },
+    stateDrawTile: ({ playerId, tile }) => {
+      const { game } = get()
+      if (game == null) {
+        return
+      }
+      const playerTiles = game.players.find(p => p.id === playerId)?.tiles
+      if (playerTiles == null) {
+        return
+      }
+      const newPlayerTiles = [...playerTiles, tile]
+      const newPlayers = game.players.map(p => {
+        if (p.id === playerId) {
+          return {
+            ...p,
+            tiles: newPlayerTiles
+          }
+        }
+        return p
+      })
+      set({
+        game: {
+          ...game,
+          players: newPlayers
+        }
+      })
     }
   }),
 )
 
 export type GameTileSorter = (a: GameTile, b: GameTile) => number
 
-export function tileSorterByValue (a: GameTile, b: GameTile): number {
+export function tileSorterByValue(a: GameTile, b: GameTile): number {
   return a[0] - b[0]
 }
 
-export function tileSorterByColor (a: GameTile, b: GameTile): number {
+export function tileSorterByColor(a: GameTile, b: GameTile): number {
   return a[1].localeCompare(b[1])
 }

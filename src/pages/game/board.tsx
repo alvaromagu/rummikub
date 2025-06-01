@@ -11,6 +11,7 @@ import { TilesHelper } from './player-section/tiles-helper'
 import { ResultDialog } from './result-dialog'
 import { StartButton } from './start-button'
 import { FlatRack } from './flat-rack'
+import { useSessionStore } from '../../stores/session'
 
 export function Board({
   id
@@ -20,6 +21,7 @@ export function Board({
   const [, navigate] = useLocation()
   const [loading, setLoading] = useState(true)
   const setGame = useGameStore((store) => store.setGame)
+  const playerId = useSessionStore(store => store.player?.id)
   const gameStarted = useGameStore(store => store.game?.started)
 
   useEffect(() => {
@@ -36,15 +38,19 @@ export function Board({
         navigate('/')
         return
       }
-      setGame(game)
-      changes = listenGame({ id, cb: setGame })
+      setGame({game, playerId})
+      changes = listenGame({
+        id, cb: game => {
+          setGame({game, playerId})
+        }
+      })
     })().finally(() => setLoading(false))
 
     return () => {
       apply = false
       changes?.unsubscribe()
     }
-  }, [id, navigate, setGame])
+  }, [id, navigate, setGame, playerId])
 
   if (loading || gameStarted == null) {
     return <p>Loading...</p>
