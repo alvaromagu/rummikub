@@ -25,21 +25,32 @@ export const useGameStore = create<GameStore>()(
         return game
       }
       const prevState = get()
-      set({
-        game: prevState.game == null ? game : {
-          ...game,
-          players: game.players.map(player => {
-            if (player.id === playerId) {
-              const statePlayer = prevState.game.players.find(p => p.id === playerId)
-              if (statePlayer != null) {
-                return {
-                  ...player,
-                  tiles: statePlayer.tiles
-                }
-              }
+
+      if (prevState.game == null || prevState.game.id !== game.id || prevState.game.started === 'not_started') {
+        set({
+          game,
+          flatRack: game.flat_rack_tiles.map(tile => tile != null ? [...tile, undefined] : undefined)
+        })
+        return
+      }
+
+      const newPlayers = prevState.game.players == null ? game.players : game.players.map(player => {
+        if (player.id === playerId) {
+          const statePlayer = prevState.game.players.find(p => p.id === playerId)
+          if (statePlayer != null) {
+            return {
+              ...player,
+              tiles: statePlayer.tiles
             }
-            return player
-          })
+          }
+        }
+        return player
+      })
+
+      set({
+        game: {
+          ...game,
+          players: newPlayers
         },
         flatRack: game.flat_rack_tiles.map(tile => tile != null ? [...tile, undefined] : undefined)
       })
