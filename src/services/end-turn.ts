@@ -51,10 +51,7 @@ export async function endTurn({
     }
   }
   const settedTiles = newFlatRack.filter(tile => tile != null && tile[3] === playerId)
-  if (playerTiles.length - settedTiles.length !== playerTilesState.length) {
-    return { error: true, message: 'Error, can not modify player tiles' }
-  }
-  if (playerTilesState.some(tile => {
+  if (playerTiles.length - settedTiles.length !== playerTilesState.length || playerTilesState.some(tile => {
     const [tileValue, tileColor, tileId] = tile
     return playerTiles.find(pTile => pTile[0] === tileValue && pTile[1] === tileColor && pTile[2] === tileId) == null
   })) {
