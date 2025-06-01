@@ -62,13 +62,13 @@ function FlatRackTile({
       onDrop={event => {
         event.preventDefault()
         event.stopPropagation()
+        setIsDragging(false)
         const tile = JSON.parse(event.dataTransfer.getData('text/plain')) as RackTile
         const res = dropTile({ tile, index })
         if (res.error) {
           toast.error(res.message)
           return
         }
-        setIsDragging(false)
       }}
       onDragOver={event => {
         event.preventDefault()
