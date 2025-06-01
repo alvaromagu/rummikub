@@ -9,11 +9,13 @@ import { getGame } from './get-game'
 export async function endTurn({
   gameId,
   playerId,
-  newFlatRack
+  newFlatRack,
+  playerTilesState
 }: {
   gameId: number
   playerId: number
   newFlatRack: Array<RackTile | undefined>
+  playerTilesState: GameTile[]
 }): Promise<ServiceError> {
   const game = await getGame({ id: gameId })
   if (game == null) {
@@ -36,23 +38,34 @@ export async function endTurn({
   if (flatRackValidation.error) {
     return flatRackValidation
   }
-  const flatRackTiles: Array<GameTile | undefined> = newFlatRack.map(tile => tile?.slice(0, 3) as unknown as GameTile | undefined)
-  let settedTilesScore = 0
-  const newPlayerTiles: GameTile[] = playerTiles.filter(([,,tileId]) => {
-    const tile = flatRackTiles.find(t => t != null && t[2] === tileId)
-    if (tile != null) {
-      settedTilesScore += tile[0] === JOKER ? JOKER_FIXED_VALUE : tile[0]
+  if (!player.hasMadeFirstMove) {
+    const moveScore = newFlatRack.reduce((acc, tile) => {
+      if (tile == null || tile[3] !== playerId) {
+        return acc
+      }
+      const [value] = tile
+      return acc + (value === JOKER ? JOKER_FIXED_VALUE : value)
+    }, 0)
+    if (moveScore < FIRST_MOVE_SCORE) {
+      return { error: true, message: 'You need to set at least 30 points' }
     }
-    return tile == null
-  })
-  if (!player.hasMadeFirstMove && settedTilesScore < FIRST_MOVE_SCORE) {
-    return { error: true, message: 'You need to set at least 30 points' }
   }
-  const hasWon = newPlayerTiles.length === 0
+  const settedTiles = newFlatRack.filter(tile => tile != null && tile[3] === playerId)
+  if (playerTiles.length - settedTiles.length !== playerTilesState.length) {
+    return { error: true, message: 'Error, can not modify player tiles' }
+  }
+  if (playerTilesState.some(tile => {
+    const [tileValue, tileColor, tileId] = tile
+    return playerTiles.find(pTile => pTile[0] === tileValue && pTile[1] === tileColor && pTile[2] === tileId) == null
+  })) {
+    return { error: true, message: 'Error, can not modify player tiles' }
+  }
+  const flatRackTiles: Array<GameTile | undefined> = newFlatRack.map(tile => tile?.slice(0, 3) as unknown as GameTile | undefined)
+  const hasWon = playerTilesState.length === 0
   const { error } = await supabase
     .from('games')
     .update({
-      players: players.map(p => p.id === playerId ? { ...p, tiles: newPlayerTiles, hasMadeFirstMove: true } : p) as [],
+      players: players.map(p => p.id === playerId ? { ...p, tiles: playerTilesState, hasMadeFirstMove: true } : p) as [],
       turn_id: players[(playerIndex + 1) % players.length].id,
       winner_id: hasWon ? playerId : null,
       started: hasWon ? 'finished' : 'started',
@@ -65,7 +78,7 @@ export async function endTurn({
   return { error: false }
 }
 
-export function validateFlatRack ({
+export function validateFlatRack({
   oldRackTiles,
   newRackTiles,
   playerTiles
@@ -77,11 +90,11 @@ export function validateFlatRack ({
   const newRackTilesWithoutNulls = newRackTiles.filter(t => t != null)
   const oldRackTilesWithoutNulls = oldRackTiles.filter(t => t != null)
 
-  const placedTiles = newRackTilesWithoutNulls.filter(([,,, playerId]) => playerId != null)
+  const placedTiles = newRackTilesWithoutNulls.filter(([, , , playerId]) => playerId != null)
   if (placedTiles.length === 0) {
     return { error: true, message: 'No tiles placed' }
   }
-  const arePlacedTilesOfPlayer = placedTiles.every(([,,tileId]) => playerTiles.find(t => t[2] === tileId) != null)
+  const arePlacedTilesOfPlayer = placedTiles.every(([, , tileId]) => playerTiles.find(t => t[2] === tileId) != null)
   if (!arePlacedTilesOfPlayer) {
     return { error: true, message: 'Placed tiles not of player' }
   }
@@ -95,7 +108,7 @@ export function validateFlatRack ({
   // check subracks are valid
   const newRackRows = unflatRack({ rackTiles: newRackTiles })
   for (const row of newRackRows) {
-    const result = validateRow({row})
+    const result = validateRow({ row })
     if (result.error) {
       return result
     }
@@ -103,7 +116,7 @@ export function validateFlatRack ({
   return { error: false }
 }
 
-export function validateRow ({
+export function validateRow({
   row
 }: {
   row: RackTile[]
@@ -114,7 +127,7 @@ export function validateRow ({
   const rowWithoutJokers = row.filter(([value]) => value !== JOKER)
   const isSameNumberRow = rowWithoutJokers.every(([value]) => value === rowWithoutJokers[0][0])
   if (isSameNumberRow) {
-    const colors = new Set([...rowWithoutJokers.map(([,color]) => color)])
+    const colors = new Set([...rowWithoutJokers.map(([, color]) => color)])
     if (colors.size !== rowWithoutJokers.length) {
       return { error: true, message: 'Can\'t repeat colors' }
     }
@@ -124,7 +137,7 @@ export function validateRow ({
   if (rowWithoutJokers.length === 1) {
     return { error: false }
   }
-  const allHaveSameColor = rowWithoutJokers.every(([,color]) => color === row[0][1])
+  const allHaveSameColor = rowWithoutJokers.every(([, color]) => color === row[0][1])
   if (!allHaveSameColor) {
     return { error: true, message: 'Colors don\'t match' }
   }

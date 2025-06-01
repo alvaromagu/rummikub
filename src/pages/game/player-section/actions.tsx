@@ -47,7 +47,8 @@ export function Actions() {
             const endTurnResult = await endTurn({
               gameId,
               playerId,
-              newFlatRack: flatRack
+              newFlatRack: flatRack,
+              playerTilesState: playerTiles
             })
             if (endTurnResult.error) {
               toast.error(endTurnResult.message)

@@ -1,9 +1,12 @@
 import supabase from '../supabase/client'
-import { ServiceError } from '../types/error'
+import { ErrorResponse, SuccessResponse } from '../types/error'
 import { GameTile } from '../types/game'
 import { randomArrIndex } from '../utils/constants'
 import { getGame } from './get-game'
 
+export type DrawTileResponse = ErrorResponse | (SuccessResponse & {
+  newPlayerTile: GameTile
+})
 export async function drawTile({
   gameId,
   playerId,
@@ -12,7 +15,7 @@ export async function drawTile({
   gameId: number
   playerId: number
   playerTilesState: GameTile[]
-}): Promise<ServiceError> {
+}): Promise<DrawTileResponse> {
   const game = await getGame({ id: gameId })
   if (game == null) {
     return { error: true, message: 'Game not found' }
@@ -37,7 +40,8 @@ export async function drawTile({
     return { error: true, message: 'Error, can not modify player tiles' }
   }
   const [newTile] = tiles_pool.splice(randomArrIndex(tiles_pool.length), 1)
-  player.tiles = [...playerTilesState, [...newTile, crypto.randomUUID()]]
+  const newPlayerTile = [...newTile, crypto.randomUUID()] as GameTile
+  player.tiles = [...playerTilesState, newPlayerTile]
   const nextTurnPlayer = players[(playerIndex + 1) % players.length].id
   const {error} = await supabase
     .from('games')
@@ -50,5 +54,5 @@ export async function drawTile({
   if (error != null) {
     return { error: true, message: error.message }
   }
-  return { error: false }
+  return { error: false, newPlayerTile }
 }
